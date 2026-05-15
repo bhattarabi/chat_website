@@ -9,15 +9,27 @@ type Props = {
   conversationId: string;
   currentUserId: string;
   initialMessages: Message[];
+  title?: string;
+  subtitle?: string;
 };
 
-export function ChatRoom({ conversationId, currentUserId, initialMessages }: Props) {
+export function ChatRoom({
+  conversationId,
+  currentUserId,
+  initialMessages,
+  title = "Support chat",
+  subtitle = "Messages appear instantly. Attach screenshots or photos when helpful."
+}: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [conversationId, initialMessages]);
 
   useEffect(() => {
     const channel = supabase
@@ -89,8 +101,8 @@ export function ChatRoom({ conversationId, currentUserId, initialMessages }: Pro
   return (
     <section className="chat-shell">
       <div className="chat-header">
-        <h1>Support chat</h1>
-        <p>Messages appear instantly. Attach screenshots or photos when helpful.</p>
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
       </div>
       <div className="messages" aria-live="polite">
         {messages.map((message) => {

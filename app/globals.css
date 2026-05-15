@@ -326,6 +326,117 @@ textarea {
   overflow: hidden;
 }
 
+.admin-chat-layout {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 340px minmax(0, 1fr);
+}
+
+.admin-chat-layout .chat-shell {
+  height: calc(100vh - 116px);
+}
+
+.chat-inbox {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: calc(100vh - 116px);
+  min-height: 560px;
+  overflow: hidden;
+}
+
+.chat-inbox-header {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  padding: 18px;
+}
+
+.chat-inbox-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.chat-inbox-header span {
+  align-items: center;
+  background: #eef5f2;
+  border-radius: 999px;
+  color: var(--accent-strong);
+  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0 9px;
+}
+
+.chat-inbox-list {
+  overflow-y: auto;
+}
+
+.inbox-item {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  min-height: 78px;
+  padding: 12px;
+}
+
+.inbox-item:hover,
+.inbox-item.selected {
+  background: #f0f7f4;
+}
+
+.inbox-item.unread {
+  background: #fff7ed;
+}
+
+.inbox-icon {
+  align-items: center;
+  background: #eef5f2;
+  border-radius: 8px;
+  color: var(--accent-strong);
+  display: flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.inbox-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.inbox-copy strong,
+.inbox-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-copy small,
+.inbox-item time,
+.inbox-empty {
+  color: var(--muted);
+}
+
+.inbox-item time {
+  font-size: 0.78rem;
+}
+
+.inbox-empty {
+  line-height: 1.45;
+  margin: 0;
+  padding: 18px;
+}
+
 .chat-header {
   border-bottom: 1px solid var(--line);
   padding: 18px 20px;
@@ -508,6 +619,16 @@ small {
   .table-row,
   .user-row {
     grid-template-columns: 1fr;
+  }
+
+  .admin-chat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-inbox {
+    height: auto;
+    max-height: 360px;
+    min-height: 220px;
   }
 
   .reset-row {

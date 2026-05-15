@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
-import type { Conversation, Message, Profile } from "@/lib/types";
+import type { Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
+import { AdminChatInbox } from "@/components/admin-chat-inbox";
 import { ChatRoom } from "@/components/chat-room";
 
 type Props = {
@@ -25,7 +26,8 @@ export default async function ChatPage({ searchParams }: Props) {
 
   if (!profile || profile.disabled) redirect("/auth");
 
-  let conversation: Conversation | null = null;
+  let conversation: ConversationPreview | Conversation | null = null;
+  let conversations: ConversationPreview[] = [];
 
   if (profile.role === "customer") {
     const existing = await supabase
@@ -45,11 +47,36 @@ export default async function ChatPage({ searchParams }: Props) {
       conversation = created.data;
     }
   } else {
-    const query = supabase.from("conversations").select("*");
-    const first = selectedConversationId
-      ? await query.eq("id", selectedConversationId).maybeSingle<Conversation>()
-      : await query.order("last_message_at", { ascending: false }).limit(1).maybeSingle<Conversation>();
-    conversation = first.data;
+    const [{ data: adminConversations }, { data: latestMessages }] = await Promise.all([
+      supabase
+        .from("conversations")
+        .select("*, profiles:customer_id(email, full_name, phone)")
+        .order("last_message_at", { ascending: false })
+        .returns<ConversationPreview[]>(),
+      supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200)
+        .returns<Message[]>()
+    ]);
+
+    const latestByConversation = new Map<string, Message>();
+    for (const message of latestMessages ?? []) {
+      if (!latestByConversation.has(message.conversation_id)) {
+        latestByConversation.set(message.conversation_id, message);
+      }
+    }
+
+    conversations = (adminConversations ?? []).map((item) => ({
+      ...item,
+      latest_message: latestByConversation.get(item.id) ?? null
+    }));
+
+    conversation =
+      conversations.find((item) => item.id === selectedConversationId) ??
+      conversations[0] ??
+      null;
   }
 
   const { data: messages } = conversation
@@ -72,12 +99,38 @@ export default async function ChatPage({ searchParams }: Props) {
           <Link href="/dashboard">Dashboard</Link>
         </nav>
       </header>
-      {conversation ? (
-        <ChatRoom
-          conversationId={conversation.id}
-          currentUserId={user.id}
-          initialMessages={messages ?? []}
-        />
+      {profile.role === "admin" ? (
+        <section className="admin-chat-layout">
+          <AdminChatInbox
+            conversations={conversations}
+            selectedConversationId={conversation?.id ?? null}
+            currentUserId={user.id}
+          />
+          {conversation ? (
+            <ChatRoom
+              conversationId={conversation.id}
+              currentUserId={user.id}
+              initialMessages={messages ?? []}
+              title={
+                "profiles" in conversation && conversation.profiles
+                  ? conversation.profiles.full_name || conversation.profiles.email
+                  : "Customer chat"
+              }
+              subtitle={
+                "profiles" in conversation && conversation.profiles?.phone
+                  ? `Phone: ${conversation.profiles.phone}`
+                  : "Reply to this customer while tracking other chats in the inbox."
+              }
+            />
+          ) : (
+            <section className="empty-state">
+              <h1>No customer chats yet</h1>
+              <p>New customer messages will appear here as conversations are created.</p>
+            </section>
+          )}
+        </section>
+      ) : conversation ? (
+        <ChatRoom conversationId={conversation.id} currentUserId={user.id} initialMessages={messages ?? []} />
       ) : (
         <section className="empty-state">
           <h1>No customer chats yet</h1>

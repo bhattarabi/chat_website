@@ -35,6 +35,10 @@ export type Conversation = {
   profiles?: Pick<Profile, "email" | "full_name" | "phone"> | null;
 };
 
+export type ConversationPreview = Conversation & {
+  latest_message?: Pick<Message, "body" | "image_url" | "sender_id" | "created_at"> | null;
+};
+
 export type Message = {
   id: string;
   conversation_id: string;
