@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ImagePlus, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
+import { LocalTime } from "@/components/local-time";
 import type { Message } from "@/lib/types";
 
 type Props = {
@@ -63,39 +64,46 @@ export function ChatRoom({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!body.trim() && !file) return;
+    const form = event.currentTarget;
     setSending(true);
 
-    let imagePath: string | null = null;
-    let imageUrl: string | null = null;
+    try {
+      let imagePath: string | null = null;
+      let imageUrl: string | null = null;
 
-    if (file) {
-      const extension = file.name.split(".").pop() || "jpg";
-      imagePath = `${conversationId}/${crypto.randomUUID()}.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from("chat-attachments")
-        .upload(imagePath, file, { upsert: false });
+      if (file) {
+        const extension = file.name.split(".").pop() || "jpg";
+        imagePath = `${conversationId}/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage
+          .from("chat-attachments")
+          .upload(imagePath, file, { upsert: false });
 
-      if (!uploadError) {
+        if (uploadError) {
+          throw uploadError;
+        }
+
         const { data } = supabase.storage.from("chat-attachments").getPublicUrl(imagePath);
         imageUrl = data.publicUrl;
       }
-    }
 
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: conversationId,
-      sender_id: currentUserId,
-      body: body.trim() || null,
-      image_path: imagePath,
-      image_url: imageUrl
-    });
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: currentUserId,
+        body: body.trim() || null,
+        image_path: imagePath,
+        image_url: imageUrl
+      });
 
-    if (!error) {
+      if (error) {
+        throw error;
+      }
+
       setBody("");
       setFile(null);
-      event.currentTarget.reset();
+      form.reset();
+    } finally {
+      setSending(false);
     }
-
-    setSending(false);
   }
 
   return (
@@ -111,12 +119,7 @@ export function ChatRoom({
             <article className={mine ? "message mine" : "message"} key={message.id}>
               {message.body ? <p>{message.body}</p> : null}
               {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
-              <time dateTime={message.created_at}>
-                {new Intl.DateTimeFormat(undefined, {
-                  hour: "numeric",
-                  minute: "2-digit"
-                }).format(new Date(message.created_at))}
-              </time>
+              <LocalTime value={message.created_at} />
             </article>
           );
         })}

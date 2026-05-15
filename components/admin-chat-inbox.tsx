@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
+import { LocalTime } from "@/components/local-time";
 import type { ConversationPreview, Message } from "@/lib/types";
 
 type Props = {
@@ -170,12 +171,7 @@ export function AdminChatInbox({
                     {previewText(conversation)}
                   </small>
                 </span>
-                <time dateTime={conversation.last_message_at}>
-                  {new Intl.DateTimeFormat(undefined, {
-                    hour: "numeric",
-                    minute: "2-digit"
-                  }).format(new Date(conversation.last_message_at))}
-                </time>
+                <LocalTime value={conversation.last_message_at} />
               </Link>
             );
           })
