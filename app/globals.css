@@ -103,50 +103,78 @@ button:disabled {
   color: var(--accent-strong);
 }
 
-.hero {
-  align-items: center;
-  background:
-    linear-gradient(90deg, rgba(12, 48, 43, 0.86), rgba(12, 48, 43, 0.18)),
-    url("https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1600&q=80");
-  background-position: center;
-  background-size: cover;
-  display: flex;
-  min-height: min(650px, 76vh);
-  padding: 56px 20px 96px;
-}
-
-.hero-copy {
-  color: white;
-  margin: 0 auto;
-  max-width: 1180px;
-  width: 100%;
-}
-
-.hero h1 {
-  font-size: clamp(3rem, 8vw, 7rem);
-  letter-spacing: 0;
-  line-height: 0.95;
-  margin: 0 0 18px;
-  max-width: 760px;
-}
-
-.hero p {
-  font-size: clamp(1.1rem, 2vw, 1.4rem);
-  line-height: 1.45;
-  margin: 0 0 28px;
-  max-width: 620px;
-}
-
 .button.large {
   min-height: 52px;
   padding: 0 22px;
+}
+
+.games-directory {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin: 24px auto 28px;
+  max-width: 1180px;
+  padding: 28px;
+  position: relative;
+}
+
+.games-directory-heading {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+  padding-bottom: 18px;
+}
+
+.games-directory-heading h2 {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  letter-spacing: 0;
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.games-directory-heading p {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.games-list {
+  display: grid;
+}
+
+.game-listing {
+  align-items: start;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 24px 0;
+}
+
+.game-listing:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.game-listing h3 {
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  letter-spacing: 0;
+  line-height: 1.05;
+  margin: 0 0 10px;
+}
+
+.game-listing p {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 780px;
 }
 
 .feature-band {
   display: grid;
   gap: 18px;
   grid-template-columns: repeat(3, 1fr);
-  margin: -52px auto 64px;
+  margin: 0 auto 64px;
   max-width: 1180px;
   padding: 0 20px;
 }
@@ -634,6 +662,11 @@ small {
   .reset-row {
     grid-template-columns: 1fr;
   }
+
+  .games-directory {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -653,13 +686,21 @@ small {
     flex-direction: column;
   }
 
-  .hero {
-    min-height: 72vh;
-    padding-bottom: 82px;
+  .feature-band {
+    margin-top: 0;
   }
 
-  .feature-band {
-    margin-top: -42px;
+  .games-directory {
+    margin-top: 20px;
+    padding: 20px;
+  }
+
+  .game-listing {
+    grid-template-columns: 1fr;
+  }
+
+  .game-listing .button {
+    width: 100%;
   }
 
   .chat-shell {
