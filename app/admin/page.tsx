@@ -1,15 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { MessageCircle, Trash2 } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
+import { PlatformLinksAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
 import { createClient } from "@/lib/supabase-server";
 import type { Announcement, Conversation, PlatformLink, Profile } from "@/lib/types";
-import {
-  deletePlatformLink,
-  saveAnnouncement,
-  savePlatformLink,
-  updateUserStatus
-} from "./actions";
+import { saveAnnouncement, savePlatformLink } from "./actions";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -92,7 +88,13 @@ export default async function AdminPage() {
             <h1>Platform links</h1>
             <form action={savePlatformLink} className="inline-form">
               <input name="title" placeholder="Title" required />
-              <input name="url" type="url" placeholder="https://..." required />
+              <input
+                name="url"
+                pattern="https?://.+|www\..+"
+                placeholder="https://... or www..."
+                required
+                title="Enter a URL starting with http://, https://, or www."
+              />
               <input name="description" placeholder="Description" />
               <input name="button_label" placeholder="Button" />
               <input name="sort_order" type="number" placeholder="Order" />
@@ -102,30 +104,7 @@ export default async function AdminPage() {
               </label>
               <button type="submit">Add link</button>
             </form>
-            <div className="table-list">
-              {(links ?? []).map((item) => (
-                <form action={savePlatformLink} className="table-row" key={item.id}>
-                  <input type="hidden" name="id" value={item.id} />
-                  <input name="title" defaultValue={item.title} aria-label="Title" />
-                  <input name="url" defaultValue={item.url} aria-label="URL" />
-                  <input name="button_label" defaultValue={item.button_label} aria-label="Button label" />
-                  <input name="sort_order" type="number" defaultValue={item.sort_order} aria-label="Sort order" />
-                  <label className="check-row">
-                    <input name="active" type="checkbox" defaultChecked={item.active} />
-                    Active
-                  </label>
-                  <button type="submit">Save</button>
-                  <button
-                    formAction={deletePlatformLink}
-                    className="icon-only danger"
-                    title="Delete link"
-                    type="submit"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </form>
-              ))}
-            </div>
+            <PlatformLinksAdminTable links={links ?? []} />
           </section>
 
           <section className="admin-section admin-tab-panel announcements-panel">
@@ -150,26 +129,7 @@ export default async function AdminPage() {
 
           <section className="admin-section admin-tab-panel users-panel">
             <h1>Users</h1>
-            <div className="table-list">
-              {(users ?? []).map((item) => (
-                <form action={updateUserStatus} className="table-row user-row" key={item.id}>
-                  <input type="hidden" name="user_id" value={item.id} />
-                  <span>
-                    <strong>{item.full_name || item.email}</strong>
-                    <small>{item.phone || "No phone saved"}</small>
-                  </span>
-                  <label className="check-row">
-                    <input name="admin" type="checkbox" defaultChecked={item.role === "admin"} />
-                    Admin
-                  </label>
-                  <label className="check-row">
-                    <input name="disabled" type="checkbox" defaultChecked={item.disabled} />
-                    Disabled
-                  </label>
-                  <button type="submit">Update</button>
-                </form>
-              ))}
-            </div>
+            <UsersAdminTable users={users ?? []} />
           </section>
 
           <section className="admin-section admin-tab-panel chats-panel">

@@ -27,13 +27,18 @@ function text(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizePlatformUrl(url: string) {
+  if (url.toLowerCase().startsWith("www.")) return `https://${url}`;
+  return url;
+}
+
 export async function savePlatformLink(formData: FormData) {
   const supabase = await requireAdmin();
   const id = text(formData, "id");
   const payload = {
     title: text(formData, "title"),
     description: text(formData, "description") || null,
-    url: text(formData, "url"),
+    url: normalizePlatformUrl(text(formData, "url")),
     button_label: text(formData, "button_label") || "Open",
     sort_order: Number(text(formData, "sort_order") || 0),
     active: formData.get("active") === "on"
@@ -47,6 +52,7 @@ export async function savePlatformLink(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath("/dashboard");
+  revalidatePath("/");
 }
 
 export async function deletePlatformLink(formData: FormData) {
@@ -54,6 +60,7 @@ export async function deletePlatformLink(formData: FormData) {
   await supabase.from("platform_links").delete().eq("id", text(formData, "id"));
   revalidatePath("/admin");
   revalidatePath("/dashboard");
+  revalidatePath("/");
 }
 
 export async function saveAnnouncement(formData: FormData) {
