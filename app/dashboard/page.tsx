@@ -41,15 +41,19 @@ export default async function DashboardPage() {
     <main className="app-shell">
       <header className="app-header">
         <Link href="/" className="brand">
-          Support Portal
+          Game Links Galore
         </Link>
         <nav>
-          {profile?.role === "admin" ? <Link href="/admin">Admin</Link> : null}
-          <Link href="/chat">Support</Link>
+          {profile?.role === "admin" ? (
+            <Link className="button" href="/admin">
+              Admin
+            </Link>
+          ) : null}
+          <Link className="button" href="/chat">
+            Support
+          </Link>
           <form action={signOut}>
-            <button type="submit" className="link-button">
-              Sign out
-            </button>
+            <button type="submit">Logout</button>
           </form>
         </nav>
       </header>

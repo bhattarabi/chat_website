@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
 import type { Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
 import { AdminChatInbox } from "@/components/admin-chat-inbox";
@@ -91,12 +92,21 @@ export default async function ChatPage({ searchParams }: Props) {
   return (
     <main className="app-shell chat-page">
       <header className="app-header">
-        <Link href="/dashboard" className="brand">
-          Support Portal
+        <Link href="/" className="brand">
+          Game Links Galore
         </Link>
         <nav>
-          {profile.role === "admin" ? <Link href="/admin">Admin</Link> : null}
-          <Link href="/dashboard">Dashboard</Link>
+          {profile.role === "admin" ? (
+            <Link className="button" href="/admin">
+              Admin
+            </Link>
+          ) : null}
+          <Link className="button" href="/dashboard">
+            Account
+          </Link>
+          <form action={signOut}>
+            <button type="submit">Logout</button>
+          </form>
         </nav>
       </header>
       {profile.role === "admin" ? (

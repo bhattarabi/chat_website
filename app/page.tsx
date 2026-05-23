@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
+import type { Profile } from "@/lib/types";
 
 const games = [
   {
@@ -40,14 +41,22 @@ export default async function Home() {
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("*").eq("id", user.id).single<Profile>()
+    : { data: null };
 
   return (
     <main className="home">
       <nav className="topbar">
-        <span className="brand">Support Portal</span>
+        <span className="brand">Game Links Galore</span>
         <div>
           {user ? (
             <div className="home-nav-actions">
+              {profile?.role === "admin" ? (
+                <Link className="button" href="/admin">
+                  Admin
+                </Link>
+              ) : null}
               <Link className="button" href="/chat">
                 Support
               </Link>

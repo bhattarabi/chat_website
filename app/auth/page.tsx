@@ -12,7 +12,7 @@ export default async function AuthPage({ searchParams }: Props) {
     <main className="auth-shell">
       <section className="auth-panel">
         <Link href="/" className="brand small">
-          Support Portal
+          Game Links Galore
         </Link>
         <h1>Customer access</h1>
         <p>Log in or create an account to open platform links and message support.</p>

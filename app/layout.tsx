@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Support Portal",
+  title: "Game Links Galore",
   description: "Mobile-friendly customer portal with Supabase auth and realtime chat."
 };
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MessageCircle, Trash2 } from "lucide-react";
+import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
 import type { Announcement, Conversation, PlatformLink, Profile } from "@/lib/types";
 import {
@@ -46,12 +47,22 @@ export default async function AdminPage() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <Link href="/dashboard" className="brand">
-          Admin
+        <Link href="/" className="brand">
+          Game Links Galore
         </Link>
         <nav>
-          <Link href="/chat">Chat</Link>
-          <Link href="/dashboard">Dashboard</Link>
+          <Link className="button" href="/admin">
+            Admin
+          </Link>
+          <Link className="button" href="/chat">
+            Support
+          </Link>
+          <Link className="button" href="/dashboard">
+            Account
+          </Link>
+          <form action={signOut}>
+            <button type="submit">Logout</button>
+          </form>
         </nav>
       </header>
 
