@@ -562,10 +562,54 @@ textarea {
   display: none;
 }
 
-.admin-main,
-.admin-side {
-  display: grid;
-  gap: 18px;
+.admin-tabs {
+  margin-top: 26px;
+}
+
+.admin-tabs > input {
+  display: none;
+}
+
+.admin-tab-list {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.admin-tab-list label {
+  align-items: center;
+  background: #eef5f2;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--accent-strong);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+#admin-tab-links:checked ~ .admin-tab-list label[for="admin-tab-links"],
+#admin-tab-announcements:checked ~ .admin-tab-list label[for="admin-tab-announcements"],
+#admin-tab-users:checked ~ .admin-tab-list label[for="admin-tab-users"],
+#admin-tab-chats:checked ~ .admin-tab-list label[for="admin-tab-chats"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.admin-tab-panel {
+  display: none;
+}
+
+#admin-tab-links:checked ~ .admin-tab-panels .links-panel,
+#admin-tab-announcements:checked ~ .admin-tab-panels .announcements-panel,
+#admin-tab-users:checked ~ .admin-tab-panels .users-panel,
+#admin-tab-chats:checked ~ .admin-tab-panels .chats-panel {
+  display: block;
 }
 
 .inline-form {

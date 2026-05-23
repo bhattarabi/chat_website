@@ -66,9 +66,29 @@ export default async function AdminPage() {
         </nav>
       </header>
 
-      <section className="admin-grid">
-        <div className="admin-main">
-          <section className="admin-section">
+      <section className="admin-tabs">
+        <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
+        <input id="admin-tab-announcements" name="admin-tabs" type="radio" />
+        <input id="admin-tab-users" name="admin-tabs" type="radio" />
+        <input id="admin-tab-chats" name="admin-tabs" type="radio" />
+
+        <div className="admin-tab-list" role="tablist" aria-label="Admin sections">
+          <label htmlFor="admin-tab-links" role="tab">
+            Platform Links
+          </label>
+          <label htmlFor="admin-tab-announcements" role="tab">
+            Announcements
+          </label>
+          <label htmlFor="admin-tab-users" role="tab">
+            Users
+          </label>
+          <label htmlFor="admin-tab-chats" role="tab">
+            User Chats
+          </label>
+        </div>
+
+        <div className="admin-tab-panels">
+          <section className="admin-section admin-tab-panel links-panel">
             <h1>Platform links</h1>
             <form action={savePlatformLink} className="inline-form">
               <input name="title" placeholder="Title" required />
@@ -108,8 +128,28 @@ export default async function AdminPage() {
             </div>
           </section>
 
-          <section className="admin-section">
-            <h2>Users</h2>
+          <section className="admin-section admin-tab-panel announcements-panel">
+            <h1>Announcements</h1>
+            <form action={saveAnnouncement} className="panel-form">
+              <input name="title" placeholder="Title" required />
+              <textarea name="body" placeholder="Notice text" rows={4} required />
+              <label className="check-row">
+                <input name="published" type="checkbox" defaultChecked />
+                Published
+              </label>
+              <button type="submit">Send notice</button>
+            </form>
+            {(announcements ?? []).map((item) => (
+              <article className="notice-item" key={item.id}>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+                <small>{item.status}</small>
+              </article>
+            ))}
+          </section>
+
+          <section className="admin-section admin-tab-panel users-panel">
+            <h1>Users</h1>
             <div className="table-list">
               {(users ?? []).map((item) => (
                 <form action={updateUserStatus} className="table-row user-row" key={item.id}>
@@ -131,30 +171,9 @@ export default async function AdminPage() {
               ))}
             </div>
           </section>
-        </div>
 
-        <aside className="admin-side">
-          <section className="admin-section">
-            <h2>Announcement</h2>
-            <form action={saveAnnouncement} className="panel-form">
-              <input name="title" placeholder="Title" required />
-              <textarea name="body" placeholder="Notice text" rows={4} required />
-              <label className="check-row">
-                <input name="published" type="checkbox" defaultChecked />
-                Published
-              </label>
-              <button type="submit">Send notice</button>
-            </form>
-            {(announcements ?? []).map((item) => (
-              <article className="notice-item" key={item.id}>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                <small>{item.status}</small>
-              </article>
-            ))}
-          </section>
-          <section className="admin-section">
-            <h2>Customer chats</h2>
+          <section className="admin-section admin-tab-panel chats-panel">
+            <h1>User Chats</h1>
             {(conversations ?? []).map((item) => (
               <Link href={`/chat?conversation=${item.id}`} className="chat-link" key={item.id}>
                 <MessageCircle size={16} />
@@ -165,7 +184,7 @@ export default async function AdminPage() {
               </Link>
             ))}
           </section>
-        </aside>
+        </div>
       </section>
     </main>
   );
