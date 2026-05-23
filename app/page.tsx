@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MessageCircle, ShieldCheck, Smartphone } from "lucide-react";
+import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
 
 const games = [
@@ -47,9 +47,17 @@ export default async function Home() {
         <span className="brand">Support Portal</span>
         <div>
           {user ? (
-            <Link className="button" href="/dashboard">
-              Dashboard
-            </Link>
+            <div className="home-nav-actions">
+              <Link className="button" href="/chat">
+                Support
+              </Link>
+              <Link className="button" href="/dashboard">
+                Account
+              </Link>
+              <form action={signOut}>
+                <button type="submit">Logout</button>
+              </form>
+            </div>
           ) : (
             <Link className="button" href="/auth">
               Login / Register
@@ -75,23 +83,6 @@ export default async function Home() {
             </article>
           ))}
         </div>
-      </section>
-      <section className="feature-band" aria-label="Highlights">
-        <article>
-          <Smartphone size={24} />
-          <h2>Mobile first</h2>
-          <p>Simple layouts built for customers using phones.</p>
-        </article>
-        <article>
-          <MessageCircle size={24} />
-          <h2>Realtime chat</h2>
-          <p>Instant support messages with image attachments.</p>
-        </article>
-        <article>
-          <ShieldCheck size={24} />
-          <h2>Owned stack</h2>
-          <p>Supabase database, auth, storage, and source code under client control.</p>
-        </article>
       </section>
     </main>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ExternalLink, MessageCircle } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { signOut, updateProfile } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
 import type { Announcement, PlatformLink, Profile } from "@/lib/types";
@@ -35,6 +35,8 @@ export default async function DashboardPage() {
     redirect("/auth?message=Your account is disabled. Contact support.");
   }
 
+  const visibleLinks = (links ?? []).filter((item) => item.title.toLowerCase() !== "downloads");
+
   return (
     <main className="app-shell">
       <header className="app-header">
@@ -54,15 +56,8 @@ export default async function DashboardPage() {
 
       <section className="dashboard-grid">
         <div className="main-column">
-          <div className="section-heading">
-            <h1>Game and platform links</h1>
-            <Link className="button icon-button" href="/chat">
-              <MessageCircle size={18} />
-              Support
-            </Link>
-          </div>
           <div className="link-grid">
-            {(links ?? []).map((item) => (
+            {visibleLinks.map((item) => (
               <article className="link-card" key={item.id}>
                 <h2>{item.title}</h2>
                 <p>{item.description}</p>
@@ -73,13 +68,6 @@ export default async function DashboardPage() {
               </article>
             ))}
           </div>
-          <section className="instructions">
-            <h2>Quick instructions</h2>
-            <p>
-              Use the cards above for downloads, login pages, and setup resources. If anything does
-              not open correctly, tap Support and send a screenshot.
-            </p>
-          </section>
         </div>
 
         <aside className="side-column">

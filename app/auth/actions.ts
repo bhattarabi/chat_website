@@ -18,7 +18,7 @@ export async function signIn(formData: FormData) {
   if (error) redirect(`/auth?message=${encodeURIComponent(error.message)}`);
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect("/");
 }
 
 export async function signUp(formData: FormData) {
