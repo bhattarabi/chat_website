@@ -249,6 +249,18 @@ label {
   gap: 7px;
 }
 
+.account-email {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.9rem;
+  gap: 7px;
+}
+
+.account-email strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
 input,
 textarea {
   background: white;
@@ -278,6 +290,10 @@ textarea {
   gap: 12px;
   grid-template-columns: 1fr auto;
   margin-top: 16px;
+}
+
+.reset-password-form {
+  margin-top: 14px;
 }
 
 .app-shell {

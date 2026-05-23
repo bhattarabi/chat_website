@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ExternalLink } from "lucide-react";
 import { signOut, updateProfile } from "@/app/auth/actions";
+import { ResetPasswordButton } from "@/components/reset-password-button";
 import { createClient } from "@/lib/supabase-server";
-import type { Announcement, PlatformLink, Profile } from "@/lib/types";
+import type { Announcement, Profile } from "@/lib/types";
 
-export default async function DashboardPage() {
+type Props = {
+  searchParams: Promise<{ message?: string }>;
+};
+
+export default async function DashboardPage({ searchParams }: Props) {
+  const { message } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user }
@@ -13,14 +18,8 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/auth");
 
-  const [{ data: profile }, { data: links }, { data: announcements }] = await Promise.all([
+  const [{ data: profile }, { data: announcements }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single<Profile>(),
-    supabase
-      .from("platform_links")
-      .select("*")
-      .eq("active", true)
-      .order("sort_order", { ascending: true })
-      .returns<PlatformLink[]>(),
     supabase
       .from("announcements")
       .select("*")
@@ -34,8 +33,6 @@ export default async function DashboardPage() {
     await supabase.auth.signOut();
     redirect("/auth?message=Your account is disabled. Contact support.");
   }
-
-  const visibleLinks = (links ?? []).filter((item) => item.title.toLowerCase() !== "downloads");
 
   return (
     <main className="app-shell">
@@ -60,23 +57,12 @@ export default async function DashboardPage() {
 
       <section className="dashboard-grid">
         <div className="main-column">
-          <div className="link-grid">
-            {visibleLinks.map((item) => (
-              <article className="link-card" key={item.id}>
-                <h2>{item.title}</h2>
-                <p>{item.description}</p>
-                <a href={item.url} target="_blank" rel="noreferrer" className="button secondary">
-                  {item.button_label}
-                  <ExternalLink size={16} />
-                </a>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <aside className="side-column">
+          {message ? <div className="notice">{message}</div> : null}
           <form action={updateProfile} className="panel-form">
-            <h2>Profile</h2>
+            <h2>Account</h2>
+            <div className="account-email">
+              <strong>{user.email ?? profile?.email ?? ""}</strong>
+            </div>
             <label>
               Name
               <input name="full_name" defaultValue={profile?.full_name ?? ""} />
@@ -85,8 +71,16 @@ export default async function DashboardPage() {
               Phone
               <input name="phone" type="tel" defaultValue={profile?.phone ?? ""} />
             </label>
-            <button type="submit">Save profile</button>
+            <button type="submit">Save changes</button>
           </form>
+          <section className="instructions account-actions">
+            <h2>Password</h2>
+            <p>Send a password reset link to your account email address.</p>
+            <ResetPasswordButton />
+          </section>
+        </div>
+
+        <aside className="side-column">
           <section className="announcements">
             <h2>Notices</h2>
             {(announcements ?? []).length ? (

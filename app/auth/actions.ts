@@ -9,6 +9,15 @@ function getString(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+async function sendPasswordResetEmail(email: string) {
+  if (!email) return "Enter an email address for password reset.";
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+  return error ? error.message : "Password reset email sent. Check your inbox.";
+}
+
 export async function signIn(formData: FormData) {
   const supabase = await createClient();
   const email = getString(formData, "email");
@@ -42,14 +51,26 @@ export async function signUp(formData: FormData) {
 }
 
 export async function resetPassword(formData: FormData) {
-  const supabase = await createClient();
   const email = getString(formData, "email");
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
-
-  const message = error
-    ? error.message
-    : "Password reset email sent. Check your inbox.";
+  const message = await sendPasswordResetEmail(email);
   redirect(`/auth?message=${encodeURIComponent(message)}`);
+}
+
+export async function sendCurrentUserPasswordReset() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/auth");
+
+  const email = user.email;
+  if (!email) {
+    redirect(`/dashboard?message=${encodeURIComponent("No email address is attached to this account.")}`);
+  }
+
+  const message = await sendPasswordResetEmail(email);
+  redirect(`/dashboard?message=${encodeURIComponent(message)}`);
 }
 
 export async function signOut() {
@@ -76,4 +97,5 @@ export async function updateProfile(formData: FormData) {
     .eq("id", user.id);
 
   revalidatePath("/dashboard");
+  redirect(`/dashboard?message=${encodeURIComponent("Account changes saved.")}`);
 }
