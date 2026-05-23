@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase-server";
 
 function getString(formData: FormData, key: string) {
@@ -13,9 +14,21 @@ async function sendPasswordResetEmail(email: string) {
   if (!email) return "Enter an email address for password reset.";
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: await getPasswordResetRedirectUrl()
+  });
 
   return error ? error.message : "Password reset email sent. Check your inbox.";
+}
+
+async function getPasswordResetRedirectUrl() {
+  const headersList = await headers();
+  const origin =
+    headersList.get("origin") ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    `${headersList.get("x-forwarded-proto") ?? "http"}://${headersList.get("host")}`;
+
+  return `${origin}/auth/callback?next=/auth/update-password`;
 }
 
 export async function signIn(formData: FormData) {
@@ -71,6 +84,28 @@ export async function sendCurrentUserPasswordReset() {
 
   const message = await sendPasswordResetEmail(email);
   redirect(`/dashboard?message=${encodeURIComponent(message)}`);
+}
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient();
+  const password = getString(formData, "password");
+  const confirmPassword = getString(formData, "confirm_password");
+
+  if (password.length < 8) {
+    redirect(`/auth/update-password?message=${encodeURIComponent("Password must be at least 8 characters.")}`);
+  }
+
+  if (password !== confirmPassword) {
+    redirect(`/auth/update-password?message=${encodeURIComponent("Passwords do not match.")}`);
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    redirect(`/auth/update-password?message=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/", "layout");
+  redirect(`/dashboard?message=${encodeURIComponent("Password updated.")}`);
 }
 
 export async function signOut() {

@@ -34,7 +34,10 @@ export async function proxy(request: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+  const isPasswordResetPage =
+    request.nextUrl.pathname.startsWith("/auth/callback") ||
+    request.nextUrl.pathname.startsWith("/auth/update-password");
+  const isAuthPage = request.nextUrl.pathname.startsWith("/auth") && !isPasswordResetPage;
   const isPrivatePage =
     request.nextUrl.pathname.startsWith("/dashboard") ||
     request.nextUrl.pathname.startsWith("/chat") ||
