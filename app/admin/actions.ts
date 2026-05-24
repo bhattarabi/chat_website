@@ -32,6 +32,10 @@ function normalizePlatformUrl(url: string) {
   return url;
 }
 
+function normalizeImageUrl(url: string) {
+  return normalizePlatformUrl(url);
+}
+
 export async function savePlatformLink(formData: FormData) {
   const supabase = await requireAdmin();
   const id = text(formData, "id");
@@ -39,6 +43,7 @@ export async function savePlatformLink(formData: FormData) {
     title: text(formData, "title"),
     description: text(formData, "description") || null,
     url: normalizePlatformUrl(text(formData, "url")),
+    image_url: text(formData, "image_url") ? normalizeImageUrl(text(formData, "image_url")) : null,
     button_label: text(formData, "button_label") || "Open",
     sort_order: Number(text(formData, "sort_order") || 0),
     active: formData.get("active") === "on"

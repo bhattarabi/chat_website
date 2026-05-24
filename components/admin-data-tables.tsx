@@ -7,7 +7,14 @@ import type { PlatformLink, Profile } from "@/lib/types";
 import { deletePlatformLink, savePlatformLink, updateUserStatus } from "@/app/admin/actions";
 
 type Direction = "asc" | "desc";
-type PlatformColumn = "title" | "url" | "description" | "button_label" | "sort_order" | "active";
+type PlatformColumn =
+  | "title"
+  | "url"
+  | "image_url"
+  | "description"
+  | "button_label"
+  | "sort_order"
+  | "active";
 type UserColumn = "full_name" | "email" | "phone" | "role" | "disabled";
 
 type SortState<TColumn extends string> = {
@@ -43,6 +50,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
   const [filters, setFilters] = useState<Record<PlatformColumn, string>>({
     title: "",
     url: "",
+    image_url: "",
     description: "",
     button_label: "",
     sort_order: "",
@@ -74,6 +82,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
             <tr>
               <SortableHeader label="Title" onClick={() => setSort(nextDirection(sort, "title"))} />
               <SortableHeader label="URL" onClick={() => setSort(nextDirection(sort, "url"))} />
+              <SortableHeader label="Image" onClick={() => setSort(nextDirection(sort, "image_url"))} />
               <SortableHeader
                 label="Description"
                 onClick={() => setSort(nextDirection(sort, "description"))}
@@ -94,6 +103,10 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
               <FilterCell
                 value={filters.url}
                 onChange={(value) => setFilters({ ...filters, url: value })}
+              />
+              <FilterCell
+                value={filters.image_url}
+                onChange={(value) => setFilters({ ...filters, image_url: value })}
               />
               <FilterCell
                 value={filters.description}
@@ -126,6 +139,15 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
               <tr key={item.id}>
                 <td>{item.title}</td>
                 <td>{item.url}</td>
+                <td>
+                  {item.image_url ? (
+                    <a href={item.image_url} target="_blank" rel="noreferrer">
+                      {item.image_url}
+                    </a>
+                  ) : (
+                    ""
+                  )}
+                </td>
                 <td>{item.description || ""}</td>
                 <td>{item.button_label}</td>
                 <td>{item.sort_order}</td>
@@ -170,6 +192,15 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                 pattern="https?://.+|www\..+"
                 required
                 title="Enter a URL starting with http://, https://, or www."
+              />
+            </label>
+            <label>
+              Image URL
+              <input
+                name="image_url"
+                defaultValue={editing.image_url ?? ""}
+                pattern="https?://.+|www\..+"
+                title="Enter an image URL starting with http://, https://, or www."
               />
             </label>
             <label>

@@ -155,8 +155,32 @@ button:disabled {
   border-bottom: 1px solid var(--line);
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 140px minmax(0, 1fr) auto;
   padding: 24px 0;
+}
+
+.game-image {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  background:
+    radial-gradient(circle at 22% 16%, rgba(255, 255, 255, 0.65), transparent 28%),
+    linear-gradient(135deg, #e6f4ef, #fff7ed);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--accent-strong);
+  display: flex;
+  font-size: 1.35rem;
+  font-weight: 900;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
+
+.game-image img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
 }
 
 .game-listing:last-child {
@@ -856,6 +880,10 @@ small {
 
   .game-listing {
     grid-template-columns: 1fr;
+  }
+
+  .game-image {
+    aspect-ratio: 16 / 9;
   }
 
   .game-listing .button {

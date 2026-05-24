@@ -53,6 +53,13 @@ export default async function Home() {
           {(games ?? []).length ? (
             games?.map((game) => (
               <article className="game-listing" key={game.id}>
+                <div className="game-image">
+                  {game.image_url ? (
+                    <img src={game.image_url} alt="" loading="lazy" />
+                  ) : (
+                    <span>{game.title.slice(0, 2).toUpperCase()}</span>
+                  )}
+                </div>
                 <div>
                   <h3>{game.title}</h3>
                   {game.description ? <p>{game.description}</p> : null}
