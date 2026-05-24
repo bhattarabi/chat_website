@@ -30,9 +30,6 @@ export default async function Home() {
                   Admin
                 </Link>
               ) : null}
-              <Link className="button" href="/chat">
-                Support
-              </Link>
               <Link className="button" href="/dashboard">
                 Account
               </Link>

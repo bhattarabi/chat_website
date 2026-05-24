@@ -50,9 +50,6 @@ export default async function AdminPage() {
           <Link className="button" href="/admin">
             Admin
           </Link>
-          <Link className="button" href="/chat">
-            Support
-          </Link>
           <Link className="button" href="/dashboard">
             Account
           </Link>

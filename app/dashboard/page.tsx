@@ -46,9 +46,6 @@ export default async function DashboardPage({ searchParams }: Props) {
               Admin
             </Link>
           ) : null}
-          <Link className="button" href="/chat">
-            Support
-          </Link>
           <form action={signOut}>
             <button type="submit">Logout</button>
           </form>
