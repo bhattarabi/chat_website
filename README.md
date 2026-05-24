@@ -5,19 +5,16 @@ A mobile-friendly Next.js + Supabase starter based on `website_developer_instruc
 ## What Is Included
 
 - Email/password signup, login, logout, and password reset.
-- Customer dashboard with editable phone number, platform/game cards, notices, and support access.
-- Realtime support chat using Supabase Realtime.
-- Image uploads in chat using Supabase Storage.
-- Admin area for platform links, users, disabling accounts, announcements, and customer chat access.
+- Customer dashboard with editable phone number, platform/game cards, notices, and LiveChat support.
+- Admin area for platform links, users, disabling accounts, and announcements.
 - Supabase SQL schema with row level security policies.
 
 ## Recommended Stack
 
 - Next.js App Router for the website.
 - Supabase Auth for email/password accounts.
-- Supabase Postgres for profiles, links, messages, announcements, and admin data.
-- Supabase Realtime for instant chat updates.
-- Supabase Storage for image attachments.
+- Supabase Postgres for profiles, platform links, announcements, and admin data.
+- LiveChat for customer support.
 - Vercel or Netlify for hosting the Next.js app.
 
 ## Setup

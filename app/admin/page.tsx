@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { MessageCircle } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { PlatformLinksAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
 import { createClient } from "@/lib/supabase-server";
-import type { Announcement, Conversation, PlatformLink, Profile } from "@/lib/types";
+import type { Announcement, PlatformLink, Profile } from "@/lib/types";
 import { saveAnnouncement, savePlatformLink } from "./actions";
 
 export default async function AdminPage() {
@@ -23,22 +22,16 @@ export default async function AdminPage() {
 
   if (currentProfile?.role !== "admin" || currentProfile.disabled) redirect("/dashboard");
 
-  const [{ data: links }, { data: users }, { data: announcements }, { data: conversations }] =
-    await Promise.all([
-      supabase.from("platform_links").select("*").order("sort_order").returns<PlatformLink[]>(),
-      supabase.from("profiles").select("*").order("created_at", { ascending: false }).returns<Profile[]>(),
-      supabase
-        .from("announcements")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(8)
-        .returns<Announcement[]>(),
-      supabase
-        .from("conversations")
-        .select("*, profiles:customer_id(email, full_name, phone)")
-        .order("last_message_at", { ascending: false })
-        .returns<Conversation[]>()
-    ]);
+  const [{ data: links }, { data: users }, { data: announcements }] = await Promise.all([
+    supabase.from("platform_links").select("*").order("sort_order").returns<PlatformLink[]>(),
+    supabase.from("profiles").select("*").order("created_at", { ascending: false }).returns<Profile[]>(),
+    supabase
+      .from("announcements")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(8)
+      .returns<Announcement[]>()
+  ]);
 
   return (
     <main className="app-shell">
@@ -63,7 +56,6 @@ export default async function AdminPage() {
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
         <input id="admin-tab-announcements" name="admin-tabs" type="radio" />
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
-        <input id="admin-tab-chats" name="admin-tabs" type="radio" />
 
         <div className="admin-tab-list" role="tablist" aria-label="Admin sections">
           <label htmlFor="admin-tab-links" role="tab">
@@ -74,9 +66,6 @@ export default async function AdminPage() {
           </label>
           <label htmlFor="admin-tab-users" role="tab">
             Users
-          </label>
-          <label htmlFor="admin-tab-chats" role="tab">
-            User Chats
           </label>
         </div>
 
@@ -133,19 +122,6 @@ export default async function AdminPage() {
           <section className="admin-section admin-tab-panel users-panel">
             <h1>Users</h1>
             <UsersAdminTable users={users ?? []} />
-          </section>
-
-          <section className="admin-section admin-tab-panel chats-panel">
-            <h1>User Chats</h1>
-            {(conversations ?? []).map((item) => (
-              <Link href={`/chat?conversation=${item.id}`} className="chat-link" key={item.id}>
-                <MessageCircle size={16} />
-                <span>
-                  {item.profiles?.full_name || item.profiles?.email || "Customer"}
-                  <small>{new Date(item.last_message_at).toLocaleString()}</small>
-                </span>
-              </Link>
-            ))}
           </section>
         </div>
       </section>
