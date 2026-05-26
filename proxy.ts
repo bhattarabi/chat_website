@@ -40,6 +40,7 @@ export async function proxy(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth") && !isPasswordResetPage;
   const isPrivatePage =
     request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname.startsWith("/chat") ||
     request.nextUrl.pathname.startsWith("/admin");
 
   if (!user && isPrivatePage) {

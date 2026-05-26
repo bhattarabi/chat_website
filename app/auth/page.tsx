@@ -15,7 +15,7 @@ export default async function AuthPage({ searchParams }: Props) {
           Game Links Galore
         </Link>
         <h1>Customer access</h1>
-        <p>Log in or create an account to open platform links.</p>
+        <p>Log in or create an account to open platform links and message support.</p>
         {message ? <div className="notice">{message}</div> : null}
         <div className="auth-grid">
           <form action={signIn} className="form-card">

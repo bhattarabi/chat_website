@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Game Links Galore",
-  description: "Mobile-friendly customer portal with Supabase auth, platform links and LiveChat support."
+  description: "Mobile-friendly customer portal with Supabase auth and realtime chat."
 };
 
 export default async function RootLayout({
