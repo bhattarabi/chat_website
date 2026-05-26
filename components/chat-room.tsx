@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { ImagePlus, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { LocalTime } from "@/components/local-time";
@@ -12,6 +13,7 @@ type Props = {
   initialMessages: Message[];
   title?: string;
   subtitle?: string;
+  actions?: ReactNode;
 };
 
 export function ChatRoom({
@@ -19,7 +21,8 @@ export function ChatRoom({
   currentUserId,
   initialMessages,
   title = "Support chat",
-  subtitle = "Messages appear instantly. Attach screenshots or photos when helpful."
+  subtitle = "Messages appear instantly. Attach screenshots or photos when helpful.",
+  actions
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -109,8 +112,11 @@ export function ChatRoom({
   return (
     <section className="chat-shell">
       <div className="chat-header">
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
+        <div>
+          <h1>{title}</h1>
+          <p>{subtitle}</p>
+        </div>
+        {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>
       <div className="messages" aria-live="polite">
         {messages.map((message) => {

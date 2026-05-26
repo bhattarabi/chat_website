@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Minimize2 } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
 import type { Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
@@ -7,11 +8,12 @@ import { AdminChatInbox } from "@/components/admin-chat-inbox";
 import { ChatRoom } from "@/components/chat-room";
 
 type Props = {
-  searchParams: Promise<{ conversation?: string }>;
+  searchParams: Promise<{ conversation?: string; returnTo?: string }>;
 };
 
 export default async function ChatPage({ searchParams }: Props) {
-  const { conversation: selectedConversationId } = await searchParams;
+  const { conversation: selectedConversationId, returnTo } = await searchParams;
+  const popupHref = returnTo?.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/?chat=open";
   const supabase = await createClient();
   const {
     data: { user }
@@ -121,6 +123,11 @@ export default async function ChatPage({ searchParams }: Props) {
               conversationId={conversation.id}
               currentUserId={user.id}
               initialMessages={messages ?? []}
+              actions={
+                <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
+                  <Minimize2 aria-hidden="true" size={18} />
+                </Link>
+              }
               title={
                 "profiles" in conversation && conversation.profiles
                   ? conversation.profiles.full_name || conversation.profiles.email
@@ -140,7 +147,16 @@ export default async function ChatPage({ searchParams }: Props) {
           )}
         </section>
       ) : conversation ? (
-        <ChatRoom conversationId={conversation.id} currentUserId={user.id} initialMessages={messages ?? []} />
+        <ChatRoom
+          conversationId={conversation.id}
+          currentUserId={user.id}
+          initialMessages={messages ?? []}
+          actions={
+            <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
+              <Minimize2 aria-hidden="true" size={18} />
+            </Link>
+          }
+        />
       ) : (
         <section className="empty-state">
           <h1>No customer chats yet</h1>
