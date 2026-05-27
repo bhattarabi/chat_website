@@ -80,6 +80,139 @@ button:disabled {
   min-height: 100vh;
 }
 
+.home .button,
+.home button {
+  overflow: hidden;
+  position: relative;
+  transform: translateZ(0);
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.home .button::before,
+.home button::before {
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.18) 28%,
+    rgba(255, 255, 255, 0.76) 48%,
+    rgba(255, 255, 255, 0.18) 68%,
+    transparent 100%
+  );
+  content: "";
+  inset: -40% -70%;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-78%) rotate(12deg);
+}
+
+.home .button:hover,
+.home .button:focus-visible,
+.home button:hover,
+.home button:focus-visible {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 14px 30px rgba(217, 255, 24, 0.2),
+    0 0 24px rgba(250, 70, 22, 0.38);
+  transform: translateY(-3px) scale(1.04);
+}
+
+.home .button:hover::before,
+.home .button:focus-visible::before,
+.home button:hover::before,
+.home button:focus-visible::before {
+  animation: button-shine-sweep 720ms ease-out;
+  opacity: 1;
+}
+
+.hero-actions .button,
+.how-to-play-actions .button,
+.footer-subscribe button {
+  animation: button-attention-pop 2.8s ease-in-out infinite;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 12px 24px rgba(250, 70, 22, 0.22),
+    0 0 22px rgba(217, 255, 24, 0.18);
+}
+
+.hero-actions .button:hover,
+.hero-actions .button:focus-visible,
+.how-to-play-actions .button:hover,
+.how-to-play-actions .button:focus-visible,
+.footer-subscribe button:hover,
+.footer-subscribe button:focus-visible {
+  animation-play-state: paused;
+}
+
+.hero-actions .button:nth-child(2),
+.how-to-play-actions .button:nth-child(2) {
+  animation-delay: 340ms;
+}
+
+.hero-button-primary,
+.footer-subscribe button {
+  isolation: isolate;
+}
+
+.hero-button-primary::after,
+.footer-subscribe button::after {
+  animation: button-glow-ring 1.8s ease-out infinite;
+  border: 2px solid rgba(217, 255, 24, 0.58);
+  border-radius: inherit;
+  content: "";
+  inset: -3px;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+@keyframes button-attention-pop {
+  0%,
+  66%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  72% {
+    transform: translateY(-5px) scale(1.05);
+  }
+
+  78% {
+    transform: translateY(0) scale(0.98);
+  }
+
+  84% {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+@keyframes button-shine-sweep {
+  from {
+    transform: translateX(-78%) rotate(12deg);
+  }
+
+  to {
+    transform: translateX(78%) rotate(12deg);
+  }
+}
+
+@keyframes button-glow-ring {
+  0% {
+    opacity: 0.82;
+    transform: scale(0.98);
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
 .home-hero {
   align-items: center;
   background: rgba(6, 16, 4, 0.38);
@@ -253,8 +386,25 @@ button:disabled {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-platform-slide,
-  .platform-image-track {
+  .platform-image-track,
+  .hero-actions .button,
+  .how-to-play-actions .button,
+  .footer-subscribe button,
+  .hero-button-primary::after,
+  .footer-subscribe button::after {
     animation: none;
+  }
+
+  .home .button,
+  .home button {
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .home .button:hover,
+  .home .button:focus-visible,
+  .home button:hover,
+  .home button:focus-visible {
+    transform: none;
   }
 }
 
