@@ -25,7 +25,11 @@ export default async function AdminPage() {
 
   const [{ data: links }, { data: users }, { data: announcements }, { data: conversations }] =
     await Promise.all([
-      supabase.from("platform_links").select("*").order("sort_order").returns<PlatformLink[]>(),
+      supabase
+        .from("platform_links")
+        .select("id, title, description, url, image_url, isFeatured:is_featured, button_label, active, sort_order")
+        .order("sort_order")
+        .returns<PlatformLink[]>(),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }).returns<Profile[]>(),
       supabase
         .from("announcements")
@@ -104,6 +108,10 @@ export default async function AdminPage() {
               <label className="check-row">
                 <input name="active" type="checkbox" defaultChecked />
                 Active
+              </label>
+              <label className="check-row">
+                <input name="isFeatured" type="checkbox" />
+                Featured
               </label>
               <button type="submit">Add link</button>
             </form>

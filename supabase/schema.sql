@@ -20,6 +20,7 @@ create table public.platform_links (
   description text,
   url text not null,
   image_url text,
+  is_featured boolean not null default false,
   button_label text not null default 'Open',
   active boolean not null default true,
   sort_order integer not null default 0,
@@ -231,13 +232,14 @@ to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
 
-insert into public.platform_links (title, description, url, image_url, button_label, sort_order)
+insert into public.platform_links (title, description, url, image_url, is_featured, button_label, sort_order)
 values
   (
     'Main Game Portal',
     'Open the primary customer game platform.',
     'https://example.com/game',
     'https://images.unsplash.com/photo-1606167668584-78701c57f13d?auto=format&fit=crop&w=800&q=80',
+    true,
     'Access',
     1
   ),
@@ -246,6 +248,7 @@ values
     'Install files and setup resources.',
     'https://example.com/downloads',
     'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
+    true,
     'Download',
     2
   ),
@@ -254,6 +257,7 @@ values
     'Login and password support resources.',
     'https://example.com/help',
     'https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&w=800&q=80',
+    true,
     'View',
     3
   );

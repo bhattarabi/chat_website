@@ -15,6 +15,7 @@ export type PlatformLink = {
   description: string | null;
   url: string;
   image_url: string | null;
+  isFeatured: boolean;
   button_label: string;
   active: boolean;
   sort_order: number;

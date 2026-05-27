@@ -44,6 +44,7 @@ export async function savePlatformLink(formData: FormData) {
     description: text(formData, "description") || null,
     url: normalizePlatformUrl(text(formData, "url")),
     image_url: text(formData, "image_url") ? normalizeImageUrl(text(formData, "image_url")) : null,
+    is_featured: formData.get("isFeatured") === "on",
     button_label: text(formData, "button_label") || "Open",
     sort_order: Number(text(formData, "sort_order") || 0),
     active: formData.get("active") === "on"

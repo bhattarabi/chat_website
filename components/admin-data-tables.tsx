@@ -11,6 +11,7 @@ type PlatformColumn =
   | "title"
   | "url"
   | "image_url"
+  | "isFeatured"
   | "description"
   | "button_label"
   | "sort_order"
@@ -51,6 +52,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
     title: "",
     url: "",
     image_url: "",
+    isFeatured: "",
     description: "",
     button_label: "",
     sort_order: "",
@@ -65,6 +67,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
           const filter = filters[column].toLowerCase();
           if (!filter) return true;
           if (column === "active") return (item.active ? "active" : "inactive") === filter;
+          if (column === "isFeatured") return (item.isFeatured ? "featured" : "not featured") === filter;
           return textValue(item[column]).includes(filter);
         })
       )
@@ -83,6 +86,10 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
               <SortableHeader label="Title" onClick={() => setSort(nextDirection(sort, "title"))} />
               <SortableHeader label="URL" onClick={() => setSort(nextDirection(sort, "url"))} />
               <SortableHeader label="Image" onClick={() => setSort(nextDirection(sort, "image_url"))} />
+              <SortableHeader
+                label="Featured"
+                onClick={() => setSort(nextDirection(sort, "isFeatured"))}
+              />
               <SortableHeader
                 label="Description"
                 onClick={() => setSort(nextDirection(sort, "description"))}
@@ -108,6 +115,17 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                 value={filters.image_url}
                 onChange={(value) => setFilters({ ...filters, image_url: value })}
               />
+              <th>
+                <select
+                  value={filters.isFeatured}
+                  onChange={(event) => setFilters({ ...filters, isFeatured: event.target.value })}
+                  aria-label="Filter featured"
+                >
+                  <option value="">All</option>
+                  <option value="featured">Featured</option>
+                  <option value="not featured">Not featured</option>
+                </select>
+              </th>
               <FilterCell
                 value={filters.description}
                 onChange={(value) => setFilters({ ...filters, description: value })}
@@ -148,6 +166,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                     ""
                   )}
                 </td>
+                <td>{item.isFeatured ? "Featured" : "Not featured"}</td>
                 <td>{item.description || ""}</td>
                 <td>{item.button_label}</td>
                 <td>{item.sort_order}</td>
@@ -202,6 +221,10 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                 pattern="https?://.+|www\..+"
                 title="Enter an image URL starting with http://, https://, or www."
               />
+            </label>
+            <label className="check-row">
+              <input name="isFeatured" type="checkbox" defaultChecked={editing.isFeatured} />
+              Featured
             </label>
             <label>
               Description

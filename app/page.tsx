@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
+import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { createClient } from "@/lib/supabase-server";
 import type { PlatformLink, Profile } from "@/lib/types";
 
@@ -13,7 +14,7 @@ export default async function Home() {
     : { data: null };
   const { data: games } = await supabase
     .from("platform_links")
-    .select("*")
+    .select("id, title, description, url, image_url, isFeatured:is_featured, button_label, active, sort_order")
     .eq("active", true)
     .order("sort_order", { ascending: true })
     .returns<PlatformLink[]>();
@@ -44,6 +45,24 @@ export default async function Home() {
           )}
         </div>
       </nav>
+      <section className="home-hero" aria-labelledby="home-hero-heading">
+        <div className="hero-logo-column">
+          <img src="/site-logo.svg" alt="Game Links Galore" />
+        </div>
+        <div className="hero-copy-column">
+          <h1 id="home-hero-heading">Game Links Galore</h1>
+          <p>
+            Welcome bonus
+            <strong> up to $100</strong>
+          </p>
+          <p>Live Agent 24/7</p>
+          <p className="hero-highlight">Fast Cash Out!</p>
+        </div>
+        <HeroPlatformCarousel
+          isSignedIn={Boolean(user)}
+          platforms={(games ?? []).filter((game) => game.isFeatured)}
+        />
+      </section>
       <section className="games-directory" aria-labelledby="games-heading">
         <div className="games-directory-heading">
           <h2 id="games-heading">Games</h2>

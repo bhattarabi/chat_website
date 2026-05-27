@@ -1,13 +1,13 @@
 :root {
-  --bg: #f7f8f5;
+  --bg: #f4f7ff;
   --panel: #ffffff;
-  --ink: #17211d;
-  --muted: #607068;
-  --line: #dbe2dc;
-  --accent: #0f766e;
-  --accent-strong: #0b5f59;
+  --ink: #001b3f;
+  --muted: #536176;
+  --line: #c9d4ea;
+  --accent: #fa4616;
+  --accent-strong: #0021a5;
   --danger: #b42318;
-  --shadow: 0 16px 40px rgba(23, 33, 29, 0.08);
+  --shadow: 0 16px 40px rgba(0, 27, 63, 0.1);
 }
 
 * {
@@ -54,12 +54,12 @@ button:disabled {
 }
 
 .secondary {
-  background: #eef5f2;
+  background: #e8efff;
   color: var(--accent-strong);
 }
 
 .secondary:hover {
-  background: #ddece7;
+  background: #d6e2ff;
 }
 
 .brand {
@@ -73,6 +73,183 @@ button:disabled {
 
 .home {
   min-height: 100vh;
+}
+
+.home-hero {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(0, 27, 63, 0.96), rgba(0, 62, 138, 0.9) 45%, rgba(12, 93, 44, 0.92)),
+    #001b3f;
+  border-bottom: 4px solid var(--accent);
+  color: white;
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(180px, 0.85fr) minmax(250px, 1fr) minmax(280px, 1.1fr);
+  margin: 0 auto;
+  min-height: 516px;
+  overflow: hidden;
+  padding: 42px max(20px, calc((100vw - 1180px) / 2 + 20px));
+}
+
+.hero-logo-column {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-logo-column img {
+  display: block;
+  filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.26));
+  height: 319px;
+  max-width: none;
+  transform: scaleX(0.72);
+  width: auto;
+}
+
+.hero-copy-column {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  text-align: center;
+}
+
+.hero-copy-column h1 {
+  color: white;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 900;
+  line-height: 0.92;
+  margin: 0;
+  text-shadow: 0 5px 0 #001b3f, 0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
+.hero-copy-column p {
+  font-size: clamp(1.1rem, 1.8vw, 1.55rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.hero-copy-column strong,
+.hero-highlight {
+  color: #ffd24a;
+}
+
+.hero-platform-panel {
+  align-items: center;
+  display: grid;
+  gap: 20px;
+  justify-items: center;
+  min-width: 0;
+}
+
+.hero-platform-frame {
+  align-items: center;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  justify-content: center;
+  max-width: 470px;
+  min-height: 319px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.hero-platform-frame img {
+  display: block;
+  filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.3));
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.hero-platform-slide {
+  animation-duration: 620ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  inset: 0;
+  margin: auto;
+  position: absolute;
+}
+
+.hero-platform-slide-enter {
+  animation-name: hero-slide-enter;
+}
+
+.hero-platform-slide-exit {
+  animation-name: hero-slide-exit;
+}
+
+@keyframes hero-slide-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes hero-slide-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.hero-platform-frame span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  color: white;
+  display: flex;
+  font-weight: 800;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  width: 100%;
+}
+
+.hero-actions .button {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  min-width: 156px;
+}
+
+.hero-button-secondary {
+  background: rgba(0, 27, 63, 0.82);
+}
+
+.hero-button-secondary:hover {
+  background: #001b3f;
+}
+
+.hero-button-primary {
+  background: #fa4616;
+  color: white;
+}
+
+.hero-button-primary:hover {
+  background: #d83c12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-platform-slide {
+    animation: none;
+  }
 }
 
 .topbar,
@@ -122,7 +299,7 @@ button:disabled {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
   bottom: 24px;
-  box-shadow: 0 18px 36px rgba(15, 118, 110, 0.28);
+  box-shadow: 0 18px 36px rgba(250, 70, 22, 0.28);
   color: white;
   display: inline-flex;
   font-weight: 800;
@@ -141,13 +318,13 @@ button:disabled {
 }
 
 .floating-chat-button:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.28);
+  outline: 3px solid rgba(250, 70, 22, 0.28);
   outline-offset: 4px;
 }
 
 .floating-chat-panel {
   bottom: 24px;
-  box-shadow: 0 22px 60px rgba(23, 33, 29, 0.18);
+  box-shadow: 0 22px 60px rgba(0, 27, 63, 0.18);
   height: min(680px, calc(100vh - 48px));
   position: fixed;
   right: 24px;
@@ -190,7 +367,7 @@ button:disabled {
 
 .floating-chat-auth-body {
   align-items: center;
-  background: #f9fbf9;
+  background: #f7f9ff;
   display: flex;
   justify-content: center;
   padding: 24px;
@@ -244,7 +421,7 @@ button:disabled {
   aspect-ratio: 4 / 3;
   background:
     radial-gradient(circle at 22% 16%, rgba(255, 255, 255, 0.65), transparent 28%),
-    linear-gradient(135deg, #e6f4ef, #fff7ed);
+    linear-gradient(135deg, #e8efff, #fff0e8);
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--accent-strong);
@@ -392,8 +569,8 @@ textarea {
 }
 
 .notice {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
+  background: #fff0e8;
+  border: 1px solid #ffc2ad;
   border-radius: 8px;
   margin: 0 0 16px;
   padding: 12px 14px;
@@ -516,7 +693,7 @@ textarea {
 
 .chat-inbox-header span {
   align-items: center;
-  background: #eef5f2;
+  background: #e8efff;
   border-radius: 999px;
   color: var(--accent-strong);
   display: inline-flex;
@@ -544,16 +721,16 @@ textarea {
 
 .inbox-item:hover,
 .inbox-item.selected {
-  background: #f0f7f4;
+  background: #eef4ff;
 }
 
 .inbox-item.unread {
-  background: #fff7ed;
+  background: #fff0e8;
 }
 
 .inbox-icon {
   align-items: center;
-  background: #eef5f2;
+  background: #e8efff;
   border-radius: 8px;
   color: var(--accent-strong);
   display: flex;
@@ -617,7 +794,7 @@ textarea {
 
 .chat-icon-button {
   align-items: center;
-  background: #eef5f2;
+  background: #e8efff;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--accent-strong);
@@ -629,11 +806,11 @@ textarea {
 }
 
 .chat-icon-button:hover {
-  background: #ddece7;
+  background: #d6e2ff;
 }
 
 .messages {
-  background: #f9fbf9;
+  background: #f7f9ff;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -652,8 +829,8 @@ textarea {
 
 .message.mine {
   align-self: flex-end;
-  background: #e6f4ef;
-  border-color: #b7ddd0;
+  background: #e8efff;
+  border-color: #aebff0;
 }
 
 .message p {
@@ -687,7 +864,7 @@ textarea {
 
 .file-picker {
   align-items: center;
-  background: #eef5f2;
+  background: #e8efff;
   border-radius: 8px;
   color: var(--accent-strong);
   cursor: pointer;
@@ -718,7 +895,7 @@ textarea {
 
 .admin-tab-list label {
   align-items: center;
-  background: #eef5f2;
+  background: #e8efff;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--accent-strong);
@@ -787,11 +964,11 @@ textarea {
 }
 
 .admin-data-table th {
-  background: #f4f8f6;
+  background: #eef4ff;
 }
 
 .admin-data-table tbody tr:hover {
-  background: #fbfcfb;
+  background: #f7f9ff;
 }
 
 .admin-data-table input,
@@ -823,7 +1000,7 @@ textarea {
 
 .modal-backdrop {
   align-items: center;
-  background: rgba(23, 33, 29, 0.38);
+  background: rgba(0, 27, 63, 0.38);
   display: flex;
   inset: 0;
   justify-content: center;
@@ -867,7 +1044,7 @@ textarea {
 
 .table-row {
   align-items: center;
-  background: #fbfcfb;
+  background: #f7f9ff;
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
@@ -917,6 +1094,21 @@ small {
 }
 
 @media (max-width: 860px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-bottom: 34px;
+    padding-top: 34px;
+  }
+
+  .hero-logo-column img {
+    max-height: 220px;
+  }
+
+  .hero-platform-frame {
+    max-width: 520px;
+  }
+
   .auth-grid,
   .dashboard-grid,
   .admin-grid,
@@ -960,6 +1152,25 @@ small {
 }
 
 @media (max-width: 560px) {
+  .home-hero {
+    gap: 22px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .hero-logo-column img {
+    max-height: 180px;
+  }
+
+  .hero-copy-column {
+    gap: 10px;
+  }
+
+  .hero-actions .button {
+    flex: 1 1 150px;
+    min-width: 0;
+  }
+
   .topbar,
   .app-header {
     align-items: flex-start;
