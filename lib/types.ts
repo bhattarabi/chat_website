@@ -29,6 +29,12 @@ export type Announcement = {
   created_at: string;
 };
 
+export type MainFeature = {
+  id: string;
+  imageUrl: string | null;
+  linkUrl: string | null;
+};
+
 export type Conversation = {
   id: string;
   customer_id: string;

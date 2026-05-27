@@ -2,7 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { createClient } from "@/lib/supabase-server";
-import type { PlatformLink, Profile } from "@/lib/types";
+import type { MainFeature, PlatformLink, Profile } from "@/lib/types";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -18,6 +18,11 @@ export default async function Home() {
     .eq("active", true)
     .order("sort_order", { ascending: true })
     .returns<PlatformLink[]>();
+  const { data: mainFeature } = await supabase
+    .from("main_feature")
+    .select("id, imageUrl:image_url, linkUrl:link_url")
+    .eq("id", "main")
+    .maybeSingle<MainFeature>();
 
   return (
     <main className="home">
@@ -76,6 +81,58 @@ export default async function Home() {
           </div>
         </section>
       ) : null}
+      <section className="how-to-play-section" aria-labelledby="how-to-play-heading">
+        <div className="how-to-play-copy">
+          <h2 id="how-to-play-heading">How To Play</h2>
+          <ol className="how-to-play-steps">
+            <li>
+              <span>01</span>
+              <div>
+                <h3>Sign Up</h3>
+                <p>It only takes 2 mins sign up. If you have any questions don't hesitate to message us.</p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <h3>Message Us</h3>
+                <p>
+                  Meet and greet is the best way to know us. Message us, ask us about our game room rule
+                  and cash out process.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <h3>Play, Win & Redeem</h3>
+                <p>Our hosts will create your platform ID and password.</p>
+              </div>
+            </li>
+          </ol>
+          <div className="how-to-play-actions">
+            <Link className="button hero-button-secondary" href={user ? "/chat" : "/auth"}>
+              Talk To Host
+            </Link>
+            <Link className="button hero-button-primary" href="/auth">
+              Sign Up Now
+            </Link>
+          </div>
+        </div>
+        <div className="how-to-play-card">
+          {mainFeature?.imageUrl ? (
+            mainFeature.linkUrl ? (
+              <a href={mainFeature.linkUrl} target="_blank" rel="noreferrer">
+                <img src={mainFeature.imageUrl} alt="Main feature" />
+              </a>
+            ) : (
+              <img src={mainFeature.imageUrl} alt="Main feature" />
+            )
+          ) : (
+            <span>No MainFeature selected</span>
+          )}
+        </div>
+      </section>
       <section className="games-directory" aria-labelledby="games-heading">
         <div className="games-directory-heading">
           <h2 id="games-heading">Games</h2>

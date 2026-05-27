@@ -4,8 +4,8 @@ import { MessageCircle } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { PlatformLinksAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
 import { createClient } from "@/lib/supabase-server";
-import type { Announcement, Conversation, PlatformLink, Profile } from "@/lib/types";
-import { saveAnnouncement, savePlatformLink } from "./actions";
+import type { Announcement, Conversation, MainFeature, PlatformLink, Profile } from "@/lib/types";
+import { saveAnnouncement, saveMainFeature, savePlatformLink } from "./actions";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -23,7 +23,7 @@ export default async function AdminPage() {
 
   if (currentProfile?.role !== "admin" || currentProfile.disabled) redirect("/dashboard");
 
-  const [{ data: links }, { data: users }, { data: announcements }, { data: conversations }] =
+  const [{ data: links }, { data: users }, { data: announcements }, { data: conversations }, { data: mainFeature }] =
     await Promise.all([
       supabase
         .from("platform_links")
@@ -41,8 +41,14 @@ export default async function AdminPage() {
         .from("conversations")
         .select("*, profiles:customer_id(email, full_name, phone)")
         .order("last_message_at", { ascending: false })
-        .returns<Conversation[]>()
+        .returns<Conversation[]>(),
+      supabase
+        .from("main_feature")
+        .select("id, imageUrl:image_url, linkUrl:link_url")
+        .eq("id", "main")
+        .maybeSingle<MainFeature>()
     ]);
+  const feature = mainFeature ?? { id: "main", imageUrl: null, linkUrl: null };
 
   return (
     <main className="app-shell">
@@ -65,6 +71,7 @@ export default async function AdminPage() {
 
       <section className="admin-tabs">
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
+        <input id="admin-tab-homepage" name="admin-tabs" type="radio" />
         <input id="admin-tab-announcements" name="admin-tabs" type="radio" />
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
         <input id="admin-tab-chats" name="admin-tabs" type="radio" />
@@ -72,6 +79,9 @@ export default async function AdminPage() {
         <div className="admin-tab-list" role="tablist" aria-label="Admin sections">
           <label htmlFor="admin-tab-links" role="tab">
             Platform Links
+          </label>
+          <label htmlFor="admin-tab-homepage" role="tab">
+            Homepage
           </label>
           <label htmlFor="admin-tab-announcements" role="tab">
             Announcements
@@ -116,6 +126,33 @@ export default async function AdminPage() {
               <button type="submit">Add link</button>
             </form>
             <PlatformLinksAdminTable links={links ?? []} />
+          </section>
+
+          <section className="admin-section admin-tab-panel homepage-panel">
+            <h1>Homepage</h1>
+            <form action={saveMainFeature} className="panel-form">
+              <label>
+                MainFeature image URL
+                <input
+                  name="main_feature_image_url"
+                  defaultValue={feature.imageUrl ?? ""}
+                  pattern="https?://.+|www\..+"
+                  placeholder="https://... or www..."
+                  title="Enter an image URL starting with http://, https://, or www."
+                />
+              </label>
+              <label>
+                MainFeature link
+                <input
+                  name="main_feature_link_url"
+                  defaultValue={feature.linkUrl ?? ""}
+                  pattern="https?://.+|www\..+"
+                  placeholder="https://... or www..."
+                  title="Enter a link starting with http://, https://, or www."
+                />
+              </label>
+              <button type="submit">Save homepage</button>
+            </form>
           </section>
 
           <section className="admin-section admin-tab-panel announcements-panel">

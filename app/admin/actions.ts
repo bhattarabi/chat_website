@@ -69,6 +69,21 @@ export async function deletePlatformLink(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function saveMainFeature(formData: FormData) {
+  const supabase = await requireAdmin();
+  const imageUrl = text(formData, "main_feature_image_url");
+  const linkUrl = text(formData, "main_feature_link_url");
+
+  await supabase.from("main_feature").upsert({
+    id: "main",
+    image_url: imageUrl ? normalizeImageUrl(imageUrl) : null,
+    link_url: linkUrl ? normalizePlatformUrl(linkUrl) : null
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
 export async function saveAnnouncement(formData: FormData) {
   const supabase = await requireAdmin();
   const {

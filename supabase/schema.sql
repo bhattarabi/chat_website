@@ -60,6 +60,14 @@ create table public.announcements (
   updated_at timestamptz not null default now()
 );
 
+create table public.main_feature (
+  id text primary key default 'main',
+  image_url text,
+  link_url text,
+  updated_at timestamptz not null default now(),
+  constraint main_feature_singleton check (id = 'main')
+);
+
 create index profiles_role_idx on public.profiles(role);
 create index platform_links_active_sort_idx on public.platform_links(active, sort_order);
 create index conversations_customer_idx on public.conversations(customer_id);
@@ -89,6 +97,10 @@ for each row execute function public.touch_updated_at();
 
 create trigger announcements_touch_updated_at
 before update on public.announcements
+for each row execute function public.touch_updated_at();
+
+create trigger main_feature_touch_updated_at
+before update on public.main_feature
 for each row execute function public.touch_updated_at();
 
 create or replace function public.touch_conversation_last_message()
@@ -163,6 +175,7 @@ alter table public.platform_links enable row level security;
 alter table public.conversations enable row level security;
 alter table public.messages enable row level security;
 alter table public.announcements enable row level security;
+alter table public.main_feature enable row level security;
 
 create policy "Profiles are visible to self and admins"
 on public.profiles for select
@@ -231,6 +244,20 @@ on public.announcements for all
 to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
+
+create policy "Main feature is visible"
+on public.main_feature for select
+to anon, authenticated
+using (true);
+
+create policy "Admins manage main feature"
+on public.main_feature for all
+to authenticated
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
+insert into public.main_feature (id)
+values ('main');
 
 insert into public.platform_links (title, description, url, image_url, is_featured, button_label, sort_order)
 values

@@ -294,6 +294,122 @@ button:disabled {
   }
 }
 
+.how-to-play-section {
+  align-items: center;
+  background:
+    radial-gradient(circle at 35% 120%, rgba(146, 188, 35, 0.5), transparent 28%),
+    linear-gradient(90deg, #020a03, #071306 48%, #020a03);
+  color: white;
+  display: grid;
+  gap: 48px;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(320px, 1fr);
+  margin: 0 auto;
+  overflow: hidden;
+  padding: 54px max(20px, calc((100vw - 1180px) / 2 + 20px));
+}
+
+.how-to-play-copy h2 {
+  color: #91c650;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+  margin: 0 0 28px;
+}
+
+.how-to-play-steps {
+  display: grid;
+  gap: 30px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.how-to-play-steps::before {
+  background: linear-gradient(#bcec38, #34c759, rgba(52, 199, 89, 0));
+  border-radius: 999px;
+  content: "";
+  height: calc(100% - 24px);
+  left: 18px;
+  position: absolute;
+  top: 12px;
+  width: 18px;
+}
+
+.how-to-play-steps li {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  position: relative;
+}
+
+.how-to-play-steps span {
+  align-items: center;
+  background: linear-gradient(180deg, #d7ff3f, #43c85f);
+  border-radius: 50%;
+  color: #061004;
+  display: inline-flex;
+  font-weight: 900;
+  height: 48px;
+  justify-content: center;
+  position: relative;
+  width: 48px;
+  z-index: 1;
+}
+
+.how-to-play-steps h3 {
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  letter-spacing: 0.24em;
+  margin: 4px 0 10px;
+}
+
+.how-to-play-steps p {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.how-to-play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 42px 0 0 56px;
+}
+
+.how-to-play-card {
+  align-items: center;
+  background: rgba(6, 16, 4, 0.9);
+  border: 1px solid rgba(172, 255, 110, 0.8);
+  border-radius: 20px;
+  box-shadow:
+    0 0 20px rgba(172, 255, 110, 0.45),
+    inset 0 0 24px rgba(172, 255, 110, 0.12);
+  display: flex;
+  justify-content: center;
+  min-height: 430px;
+  overflow: hidden;
+  padding: 28px;
+}
+
+.how-to-play-card a {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.how-to-play-card img {
+  border-radius: 16px;
+  display: block;
+  height: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.how-to-play-card span {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 800;
+}
+
 .topbar,
 .app-header {
   align-items: center;
@@ -950,6 +1066,7 @@ textarea {
 }
 
 #admin-tab-links:checked ~ .admin-tab-list label[for="admin-tab-links"],
+#admin-tab-homepage:checked ~ .admin-tab-list label[for="admin-tab-homepage"],
 #admin-tab-announcements:checked ~ .admin-tab-list label[for="admin-tab-announcements"],
 #admin-tab-users:checked ~ .admin-tab-list label[for="admin-tab-users"],
 #admin-tab-chats:checked ~ .admin-tab-list label[for="admin-tab-chats"] {
@@ -963,6 +1080,7 @@ textarea {
 }
 
 #admin-tab-links:checked ~ .admin-tab-panels .links-panel,
+#admin-tab-homepage:checked ~ .admin-tab-panels .homepage-panel,
 #admin-tab-announcements:checked ~ .admin-tab-panels .announcements-panel,
 #admin-tab-users:checked ~ .admin-tab-panels .users-panel,
 #admin-tab-chats:checked ~ .admin-tab-panels .chats-panel {
@@ -1151,6 +1269,10 @@ small {
     max-width: 520px;
   }
 
+  .how-to-play-section {
+    grid-template-columns: 1fr;
+  }
+
   .auth-grid,
   .dashboard-grid,
   .admin-grid,
@@ -1211,6 +1333,25 @@ small {
   .hero-actions .button {
     flex: 1 1 150px;
     min-width: 0;
+  }
+
+  .how-to-play-section {
+    gap: 32px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .how-to-play-actions {
+    margin-left: 0;
+  }
+
+  .how-to-play-actions .button {
+    flex: 1 1 150px;
+  }
+
+  .how-to-play-card {
+    min-height: 280px;
+    padding: 16px;
   }
 
   .topbar,
