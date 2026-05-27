@@ -197,7 +197,7 @@ with check (public.is_admin(auth.uid()));
 create policy "Active platform links are visible"
 on public.platform_links for select
 to anon, authenticated
-using (active or public.is_admin(auth.uid()));
+using (active);
 
 create policy "Admins manage platform links"
 on public.platform_links for all

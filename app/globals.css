@@ -622,6 +622,83 @@ button:disabled {
   text-align: center;
 }
 
+.platforms-page {
+  min-height: 100vh;
+}
+
+.platforms-section {
+  margin: 0 auto;
+  max-width: 1400px;
+  padding: 8px 20px 72px;
+}
+
+.platforms-section h1 {
+  color: #9bd32d;
+  font-size: clamp(3rem, 6vw, 4.3rem);
+  line-height: 1;
+  margin: 0 0 40px;
+  text-align: center;
+}
+
+.platforms-grid {
+  display: grid;
+  gap: 34px 10px;
+  grid-template-columns: repeat(5, minmax(190px, 1fr));
+}
+
+.platform-card {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.platform-card-image {
+  align-items: center;
+  background: rgba(31, 31, 31, 0.88);
+  border: 1px solid rgba(172, 255, 110, 0.16);
+  border-radius: 20px;
+  display: flex;
+  height: 224px;
+  justify-content: center;
+  max-width: 264px;
+  overflow: hidden;
+  padding: 32px;
+  width: 100%;
+}
+
+.platform-card-image img {
+  border-radius: 16px;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.platform-card-image span {
+  color: #d9ff18;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.platform-play-button {
+  background: #2a2a2a;
+  border-radius: 10px;
+  color: white;
+  min-width: 86px;
+}
+
+.platform-play-button:hover {
+  background: #3a3a3a;
+  color: #d9ff18;
+}
+
+.platforms-empty {
+  color: rgba(255, 255, 255, 0.72);
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
 .topbar,
 .app-header {
   align-items: center;
@@ -665,7 +742,7 @@ button:disabled {
 }
 
 .home-main-nav a:hover,
-.home-main-nav a:first-child {
+.home-main-nav a.active {
   color: #d9ff18;
 }
 
@@ -1552,6 +1629,10 @@ small {
     grid-template-columns: 1fr;
   }
 
+  .platforms-grid {
+    grid-template-columns: repeat(2, minmax(190px, 1fr));
+  }
+
   .landing-footer-top {
     grid-template-columns: 1fr;
   }
@@ -1665,6 +1746,10 @@ small {
 
   .landing-footer-brand img {
     height: 190px;
+  }
+
+  .platforms-grid {
+    grid-template-columns: 1fr;
   }
 
   .topbar,
