@@ -413,6 +413,90 @@ button:disabled {
   font-weight: 800;
 }
 
+.game-rules-section {
+  background: transparent;
+  color: white;
+  overflow: hidden;
+  padding: 72px max(20px, calc((100vw - 1180px) / 2 + 20px)) 46px;
+}
+
+.game-rules-section h2 {
+  color: #9bd32d;
+  font-size: clamp(3.2rem, 8vw, 5.4rem);
+  line-height: 0.95;
+  margin: 0 0 42px;
+  text-align: center;
+}
+
+.game-rules-grid {
+  display: grid;
+  gap: 68px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0 auto;
+  max-width: 860px;
+}
+
+.game-rules-column header {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin-bottom: 34px;
+}
+
+.game-rules-column h3 {
+  color: #d9ff18;
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.game-rules-column header span {
+  align-items: center;
+  border: 2px solid #d9ff18;
+  border-radius: 50%;
+  color: #d9ff18;
+  display: inline-flex;
+  font-size: 1.1rem;
+  font-weight: 900;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.game-rules-column ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.game-rules-column li {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1rem;
+  line-height: 1.45;
+  padding-left: 26px;
+  position: relative;
+}
+
+.game-rules-column li::before {
+  align-items: center;
+  background: #14d214;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: white;
+  content: "✓";
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 900;
+  height: 18px;
+  justify-content: center;
+  left: 0;
+  line-height: 1;
+  position: absolute;
+  top: 2px;
+  width: 18px;
+}
+
 .topbar,
 .app-header {
   align-items: center;
@@ -1281,6 +1365,11 @@ small {
     grid-template-columns: 1fr;
   }
 
+  .game-rules-grid {
+    gap: 42px;
+    grid-template-columns: 1fr;
+  }
+
   .auth-grid,
   .dashboard-grid,
   .admin-grid,
@@ -1360,6 +1449,15 @@ small {
   .how-to-play-card {
     min-height: 280px;
     padding: 16px;
+  }
+
+  .game-rules-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .game-rules-section h2 {
+    text-align: left;
   }
 
   .topbar,

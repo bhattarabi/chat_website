@@ -133,6 +133,37 @@ export default async function Home() {
           )}
         </div>
       </section>
+      <section className="game-rules-section" aria-labelledby="game-rules-heading">
+        <h2 id="game-rules-heading">Gameroom Rules</h2>
+        <div className="game-rules-grid">
+          <article className="game-rules-column">
+            <header>
+              <h3>Redemption Policy</h3>
+            </header>
+            <ul>
+              <li>Live Agent 24/7</li>
+              <li>Redeem Hours 12pm- 11pm Eastern Time Zone</li>
+              <li>$500 max per day / until your balance is fully redeemed, (personal or business)</li>
+              <li>2 Redeems allowed per day</li>
+              <li>$Minimum redeem is $50</li>
+            </ul>
+          </article>
+          <article className="game-rules-column">
+            <header>
+              <h3>Payment Methods</h3>
+            </header>
+            <ul>
+              <li>Cashapp,</li>
+              <li>Venmo,</li>
+              <li>Paypal,</li>
+              <li>Chime</li>
+              <li>Apple Pay</li>
+              <li>BinPay (Accept major, Debit & Credit Cards)</li>
+              <li>Pandora (Accept Gpay, Min $20)</li>
+            </ul>
+          </article>
+        </div>
+      </section>
       <section className="games-directory" aria-labelledby="games-heading">
         <div className="games-directory-heading">
           <h2 id="games-heading">Games</h2>
