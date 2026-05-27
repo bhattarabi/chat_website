@@ -164,6 +164,41 @@ export default async function Home() {
           </article>
         </div>
       </section>
+      <footer className="landing-footer">
+        <div className="landing-footer-top">
+          <div className="landing-footer-info">
+            <div className="footer-link-groups">
+              <div>
+                <h2>Sign up To Play!</h2>
+                <nav aria-label="Footer navigation">
+                  <Link href="/">Home</Link>
+                  <a href="#games-heading">Platforms</a>
+                </nav>
+              </div>
+              <div className="footer-legal-group">
+                <h2>Legal Pages</h2>
+                <nav aria-label="Legal pages">
+                  <Link href="/privacy">Privacy Policy</Link>
+                  <Link href="/terms">Terms & Conditions</Link>
+                </nav>
+              </div>
+            </div>
+            <div className="landing-footer-brand">
+              <img src="/site-logo.svg" alt="Game Links Galore" />
+              <strong>Game Links Galore</strong>
+            </div>
+          </div>
+          <form className="footer-subscribe">
+            <input aria-label="Email address" type="email" placeholder="Enter your email address" />
+            <input aria-label="Phone number" type="tel" placeholder="Enter Your Phone Number" />
+            <button type="submit">Subscribe Now</button>
+            <p>Join thousands of Gamers & Winners who receive our weekly Promo.</p>
+          </form>
+        </div>
+        <div className="landing-footer-bottom">
+          <span>Copyright Game Links Galore | Designed for Game Links Galore | Powered by Game Links Galore</span>
+        </div>
+      </footer>
       <section className="games-directory" aria-labelledby="games-heading">
         <div className="games-directory-heading">
           <h2 id="games-heading">Games</h2>
