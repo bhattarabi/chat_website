@@ -27,8 +27,15 @@ export default async function Home() {
   return (
     <main className="home">
       <nav className="topbar">
-        <span className="brand">Game Links Galore</span>
-        <div>
+        <Link className="brand home-brand" href="/">
+          Game Links Galore
+        </Link>
+        <div className="home-main-nav" aria-label="Primary navigation">
+          <Link href="/">Home</Link>
+          <a href="#game-rules-heading">Rules</a>
+          <Link href="/platforms">Platforms</Link>
+        </div>
+        <div className="home-auth-nav">
           {user ? (
             <div className="home-nav-actions">
               {profile?.role === "admin" ? (
@@ -45,7 +52,7 @@ export default async function Home() {
             </div>
           ) : (
             <Link className="button" href="/auth">
-              Login / Register
+              Log In
             </Link>
           )}
         </div>
@@ -133,7 +140,7 @@ export default async function Home() {
           )}
         </div>
       </section>
-      <section className="game-rules-section" aria-labelledby="game-rules-heading">
+      <section className="game-rules-section" id="rules" aria-labelledby="game-rules-heading">
         <h2 id="game-rules-heading">Gameroom Rules</h2>
         <div className="game-rules-grid">
           <article className="game-rules-column">

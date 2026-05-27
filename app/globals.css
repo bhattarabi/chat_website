@@ -632,6 +632,63 @@ button:disabled {
   padding: 18px 20px;
 }
 
+.topbar {
+  background: #1f1f1f;
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 1180px) minmax(140px, 1fr);
+  margin: 0;
+  max-width: none;
+  min-height: 104px;
+  padding: 22px 22px;
+}
+
+.home-brand {
+  color: white;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 0.82;
+  max-width: 122px;
+  text-shadow: 0 2px 0 rgba(43, 216, 111, 0.35);
+  text-transform: uppercase;
+}
+
+.home-main-nav {
+  align-items: center;
+  display: flex;
+  gap: 42px;
+  justify-content: flex-start;
+}
+
+.home-main-nav a {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.home-main-nav a:hover,
+.home-main-nav a:first-child {
+  color: #d9ff18;
+}
+
+.home-auth-nav {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.home-auth-nav .button,
+.home-auth-nav button {
+  background: #050805;
+  border: 1px solid rgba(172, 255, 110, 0.32);
+  border-radius: 10px;
+  color: white;
+  min-width: 148px;
+}
+
+.home-auth-nav .button:hover,
+.home-auth-nav button:hover {
+  background: #111a0d;
+}
+
 .home-nav-actions {
   align-items: center;
   display: flex;
@@ -1615,6 +1672,21 @@ small {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
+  }
+
+  .topbar {
+    display: flex;
+    min-height: auto;
+    width: 100%;
+  }
+
+  .home-main-nav {
+    gap: 22px;
+  }
+
+  .home-auth-nav {
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .app-header nav {
