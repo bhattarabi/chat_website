@@ -1,2 +1,3 @@
 NEXT_PUBLIC_SUPABASE_URL="https://aupemkcjjcmhlhoghymf.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_QD4QsgUSb5wHpGEvAfKDkQ_qlfAaDb2"
+SITE_URL="https://your-production-domain.com"

@@ -22,13 +22,40 @@ async function sendPasswordResetEmail(email: string) {
 }
 
 async function getPasswordResetRedirectUrl() {
-  const headersList = await headers();
-  const origin =
-    headersList.get("origin") ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    `${headersList.get("x-forwarded-proto") ?? "http"}://${headersList.get("host")}`;
-
+  const origin = await getAppOrigin();
   return `${origin}/auth/callback?next=/auth/update-password`;
+}
+
+async function getAppOrigin() {
+  const headersList = await headers();
+  const configuredUrl =
+    process.env.SITE_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+    process.env.VERCEL_URL;
+
+  const normalizedConfiguredUrl = normalizeOrigin(configuredUrl);
+  if (normalizedConfiguredUrl) return normalizedConfiguredUrl;
+
+  const forwardedHost = headersList.get("x-forwarded-host");
+  const host = forwardedHost ?? headersList.get("host");
+  const forwardedProto = headersList.get("x-forwarded-proto");
+  const protocol = forwardedProto ?? (host?.includes("localhost") ? "http" : "https");
+
+  return normalizeOrigin(host ? `${protocol}://${host}` : headersList.get("origin")) ?? "http://localhost:3000";
+}
+
+function normalizeOrigin(value?: string | null) {
+  if (!value) return null;
+
+  const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+  try {
+    const url = new URL(withProtocol);
+    return url.origin;
+  } catch {
+    return null;
+  }
 }
 
 export async function signIn(formData: FormData) {
