@@ -86,7 +86,7 @@ button:disabled {
   gap: 28px;
   grid-template-columns: minmax(180px, 0.85fr) minmax(250px, 1fr) minmax(280px, 1.1fr);
   margin: 0 auto;
-  min-height: 516px;
+  min-height: 540px;
   overflow: hidden;
   padding: 42px max(20px, calc((100vw - 1180px) / 2 + 20px));
 }
@@ -181,25 +181,25 @@ button:disabled {
 
 @keyframes hero-slide-enter {
   from {
-    opacity: 0;
-    transform: translateX(-100%);
+    /* opacity: 0; */
+    transform: translateX(100%);
   }
 
   to {
-    opacity: 1;
+    /* opacity: 1; */
     transform: translateX(0);
   }
 }
 
 @keyframes hero-slide-exit {
   from {
-    opacity: 1;
+    /* opacity: 1; */
     transform: translateX(0);
   }
 
   to {
-    opacity: 0;
-    transform: translateX(100%);
+    /* opacity: 0; */
+    transform: translateX(-100%);
   }
 }
 
@@ -247,8 +247,50 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-platform-slide {
+  .hero-platform-slide,
+  .platform-image-track {
     animation: none;
+  }
+}
+
+.platform-image-strip {
+  background: #000000;
+  border-bottom: 1px solid rgba(43, 216, 111, 0.25);
+  overflow: hidden;
+  padding: 26px 0 32px;
+}
+
+.platform-image-track {
+  animation: platform-strip-scroll 7s linear infinite;
+  display: flex;
+  gap: 22px;
+  width: max-content;
+}
+
+.platform-image-tile {
+  background: #071308;
+  border: 1px solid rgba(43, 216, 111, 0.7);
+  border-radius: 6px;
+  box-shadow: 0 12px 18px rgba(43, 216, 111, 0.36);
+  flex: 0 0 158px;
+  height: 126px;
+  overflow: hidden;
+}
+
+.platform-image-tile img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+@keyframes platform-strip-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -298,7 +340,7 @@ button:disabled {
   background: var(--accent);
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
-  bottom: 24px;
+  bottom: 0;
   box-shadow: 0 18px 36px rgba(250, 70, 22, 0.28);
   color: white;
   display: inline-flex;
@@ -1220,7 +1262,7 @@ small {
 
   .floating-chat-button {
     border-radius: 50%;
-    bottom: 18px;
+    bottom: 0;
     min-height: 56px;
     padding: 0;
     right: 18px;

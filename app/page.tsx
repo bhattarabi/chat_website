@@ -63,6 +63,19 @@ export default async function Home() {
           platforms={(games ?? []).filter((game) => game.isFeatured)}
         />
       </section>
+      {(games ?? []).some((game) => game.image_url) ? (
+        <section className="platform-image-strip" aria-label="Platform games">
+          <div className="platform-image-track">
+            {[...(games ?? []), ...(games ?? [])]
+              .filter((game) => game.image_url)
+              .map((game, index) => (
+                <div className="platform-image-tile" key={`${game.id}-${index}`}>
+                  <img src={game.image_url ?? ""} alt={game.title} />
+                </div>
+              ))}
+          </div>
+        </section>
+      ) : null}
       <section className="games-directory" aria-labelledby="games-heading">
         <div className="games-directory-heading">
           <h2 id="games-heading">Games</h2>
