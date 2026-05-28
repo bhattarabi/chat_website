@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Maximize2, MessageCircle, Minus, X } from "lucide-react";
+import { Maximize2, MessageCircle, Minus } from "lucide-react";
 import { ChatRoom } from "@/components/chat-room";
 import type { Message } from "@/lib/types";
 
@@ -22,16 +23,34 @@ export function FloatingChatWidget({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isChatPage = pathname === "/chat";
-  const isOpen = searchParams.get("chat") === "open";
-  const openedParams = new URLSearchParams(searchParams);
-  const closedParams = new URLSearchParams(searchParams);
-  openedParams.set("chat", "open");
-  closedParams.delete("chat");
-  const openedPath = `${pathname}?${openedParams.toString()}`;
-  const closedQuery = closedParams.toString();
-  const closedPath = closedQuery ? `${pathname}?${closedQuery}` : pathname;
+  const search = searchParams.toString();
+  const [isOpen, setIsOpen] = useState(() => searchParams.get("chat") === "open");
+
+  const { openedPath, closedPath } = useMemo(() => {
+    const openedParams = new URLSearchParams(search);
+    const closedParams = new URLSearchParams(search);
+    openedParams.set("chat", "open");
+    closedParams.delete("chat");
+    const openedQuery = openedParams.toString();
+    const closedQuery = closedParams.toString();
+
+    return {
+      openedPath: openedQuery ? `${pathname}?${openedQuery}` : pathname,
+      closedPath: closedQuery ? `${pathname}?${closedQuery}` : pathname
+    };
+  }, [pathname, search]);
+
   const returnTo = openedPath;
   const fullPageHref = `/chat?returnTo=${encodeURIComponent(returnTo)}`;
+
+  useEffect(() => {
+    setIsOpen(searchParams.get("chat") === "open");
+  }, [searchParams]);
+
+  function toggleChat(open: boolean) {
+    setIsOpen(open);
+    window.history.replaceState(null, "", open ? openedPath : closedPath);
+  }
 
   if (isChatPage) return null;
 
@@ -44,55 +63,69 @@ export function FloatingChatWidget({
     );
   }
 
-  if (!isOpen) {
-    return (
-      <Link className="floating-chat-button" href={openedPath} aria-label="Open support chat">
+  return (
+    <>
+      <button
+        className="floating-chat-button"
+        type="button"
+        onClick={() => toggleChat(true)}
+        aria-label="Open support chat"
+        data-open={isOpen}
+      >
         <MessageCircle aria-hidden="true" size={24} strokeWidth={2.5} />
         <span>Chat</span>
-      </Link>
-    );
-  }
+      </button>
 
-  return (
-    <aside className="floating-chat-panel" aria-label="Support chat">
-      {currentUserId && conversationId ? (
-        <ChatRoom
-          conversationId={conversationId}
-          currentUserId={currentUserId}
-          initialMessages={initialMessages}
-          actions={
-            <>
-              <Link className="chat-icon-button" href={fullPageHref} aria-label="Open full page chat">
-                <Maximize2 aria-hidden="true" size={18} />
-              </Link>
-              <Link className="chat-icon-button" href={closedPath} aria-label="Minimize chat">
-                <Minus aria-hidden="true" size={18} />
-              </Link>
-            </>
-          }
-        />
-      ) : (
-        <section className="chat-shell floating-chat-auth">
-          <div className="chat-header">
-            <div>
-              <h1>Support chat</h1>
-              <p>
-                {currentUserId
-                  ? "Open the full chat page to manage customer conversations."
-                  : "Log in or create an account to message support."}
-              </p>
+      <aside className="floating-chat-panel" aria-label="Support chat" data-open={isOpen}>
+        {currentUserId && conversationId ? (
+          <ChatRoom
+            conversationId={conversationId}
+            currentUserId={currentUserId}
+            initialMessages={initialMessages}
+            actions={
+              <>
+                <Link className="chat-icon-button" href={fullPageHref} aria-label="Open full page chat">
+                  <Maximize2 aria-hidden="true" size={18} />
+                </Link>
+                <button
+                  className="chat-icon-button"
+                  type="button"
+                  onClick={() => toggleChat(false)}
+                  aria-label="Minimize chat"
+                >
+                  <Minus aria-hidden="true" size={22} strokeWidth={2.75} />
+                </button>
+              </>
+            }
+          />
+        ) : (
+          <section className="chat-shell floating-chat-auth">
+            <div className="chat-header">
+              <div>
+                <h1>Support chat</h1>
+                <p>
+                  {currentUserId
+                    ? "Open the full chat page to manage customer conversations."
+                    : "Log in or create an account to message support."}
+                </p>
+              </div>
+              <button
+                className="chat-icon-button"
+                type="button"
+                onClick={() => toggleChat(false)}
+                aria-label="Minimize chat"
+              >
+                <Minus aria-hidden="true" size={22} strokeWidth={2.75} />
+              </button>
             </div>
-            <Link className="chat-icon-button" href={closedPath} aria-label="Close chat">
-              <X aria-hidden="true" size={18} />
-            </Link>
-          </div>
-          <div className="floating-chat-auth-body">
-            <Link className="button" href={currentUserId ? "/chat" : "/auth"}>
-              {currentUserId ? "Open Chat" : "Login / Register"}
-            </Link>
-          </div>
-        </section>
-      )}
-    </aside>
+            <div className="floating-chat-auth-body">
+              <Link className="button" href={currentUserId ? "/chat" : "/auth"}>
+                {currentUserId ? "Open Chat" : "Login / Register"}
+              </Link>
+            </div>
+          </section>
+        )}
+      </aside>
+    </>
   );
 }

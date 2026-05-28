@@ -1015,6 +1015,10 @@ button:disabled {
   outline-offset: 4px;
 }
 
+.floating-chat-button[data-open="true"] {
+  display: none;
+}
+
 .floating-chat-panel {
   bottom: 24px;
   box-shadow: 0 22px 60px rgba(0, 27, 63, 0.18);
@@ -1023,6 +1027,10 @@ button:disabled {
   right: 24px;
   width: min(420px, calc(100vw - 48px));
   z-index: 50;
+}
+
+.floating-chat-panel[data-open="false"] {
+  display: none;
 }
 
 .floating-chat-panel .chat-shell {
@@ -1506,6 +1514,12 @@ textarea {
   height: 38px;
   justify-content: center;
   width: 38px;
+}
+
+.chat-icon-button svg {
+  flex: 0 0 auto;
+  height: 20px;
+  width: 20px;
 }
 
 .chat-icon-button:hover {
