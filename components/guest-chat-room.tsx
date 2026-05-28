@@ -19,6 +19,7 @@ type GuestSession = {
 };
 
 const storageKey = "guest-support-chat";
+const messageRefreshMs = 900;
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -69,9 +70,28 @@ export function GuestChatRoom({ actions }: Props) {
 
     const interval = window.setInterval(() => {
       loadMessages(session).catch(() => undefined);
-    }, 4000);
+    }, messageRefreshMs);
 
     return () => window.clearInterval(interval);
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+    const activeSession = session;
+
+    function refreshWhenActive() {
+      if (document.visibilityState === "visible") {
+        loadMessages(activeSession).catch(() => undefined);
+      }
+    }
+
+    window.addEventListener("focus", refreshWhenActive);
+    document.addEventListener("visibilitychange", refreshWhenActive);
+
+    return () => {
+      window.removeEventListener("focus", refreshWhenActive);
+      document.removeEventListener("visibilitychange", refreshWhenActive);
+    };
   }, [session]);
 
   useEffect(() => {
