@@ -1053,6 +1053,11 @@ button:disabled {
   max-width: 88%;
 }
 
+.floating-chat-panel .chat-date-separator {
+  font-size: 0.72rem;
+  margin: 4px 0 0;
+}
+
 .floating-chat-panel .composer {
   grid-template-columns: 40px 1fr 44px;
   padding: 10px;
@@ -1529,6 +1534,17 @@ textarea {
   align-self: flex-end;
   background: #e8efff;
   border-color: #aebff0;
+}
+
+.chat-date-separator {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  margin: 6px 0 2px;
+  text-align: center;
 }
 
 .message p {

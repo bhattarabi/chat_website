@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ImagePlus, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
@@ -16,6 +16,35 @@ type Props = {
   actions?: ReactNode;
 };
 
+function getDateParts(value: string, timeZone?: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone,
+    year: "numeric"
+  }).formatToParts(new Date(value));
+
+  return {
+    day: parts.find((part) => part.type === "day")?.value ?? "",
+    month: parts.find((part) => part.type === "month")?.value ?? "",
+    year: parts.find((part) => part.type === "year")?.value ?? ""
+  };
+}
+
+function getDateKey(value: string, timeZone?: string) {
+  const { day, month, year } = getDateParts(value, timeZone);
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateLabel(value: string, timeZone?: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "long",
+    timeZone,
+    year: "numeric"
+  }).format(new Date(value));
+}
+
 export function ChatRoom({
   conversationId,
   currentUserId,
@@ -29,7 +58,12 @@ export function ChatRoom({
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -119,14 +153,27 @@ export function ChatRoom({
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>
       <div className="messages" aria-live="polite">
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const mine = message.sender_id === currentUserId;
+          const timeZone = mounted ? undefined : "UTC";
+          const messageDateKey = getDateKey(message.created_at, timeZone);
+          const previousMessage = messages[index - 1];
+          const previousDateKey = previousMessage ? getDateKey(previousMessage.created_at, timeZone) : null;
+          const showDateSeparator = messageDateKey !== previousDateKey;
+
           return (
-            <article className={mine ? "message mine" : "message"} key={message.id}>
-              {message.body ? <p>{message.body}</p> : null}
-              {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
-              <LocalTime value={message.created_at} />
-            </article>
+            <Fragment key={message.id}>
+              {showDateSeparator ? (
+                <time className="chat-date-separator" dateTime={message.created_at}>
+                  {formatDateLabel(message.created_at, timeZone)}
+                </time>
+              ) : null}
+              <article className={mine ? "message mine" : "message"}>
+                {message.body ? <p>{message.body}</p> : null}
+                {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
+                <LocalTime value={message.created_at} />
+              </article>
+            </Fragment>
           );
         })}
         <div ref={endRef} />
