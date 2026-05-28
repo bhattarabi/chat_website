@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Maximize2, MessageCircle, Minus } from "lucide-react";
 import { ChatRoom } from "@/components/chat-room";
+import { GuestChatRoom } from "@/components/guest-chat-room";
 import type { Message } from "@/lib/types";
 
 type Props = {
@@ -99,16 +100,8 @@ export function FloatingChatWidget({
             }
           />
         ) : (
-          <section className="chat-shell floating-chat-auth">
-            <div className="chat-header">
-              <div>
-                <h1>Support chat</h1>
-                <p>
-                  {currentUserId
-                    ? "Open the full chat page to manage customer conversations."
-                    : "Log in or create an account to message support."}
-                </p>
-              </div>
+          <GuestChatRoom
+            actions={
               <button
                 className="chat-icon-button"
                 type="button"
@@ -117,13 +110,8 @@ export function FloatingChatWidget({
               >
                 <Minus aria-hidden="true" size={22} strokeWidth={2.75} />
               </button>
-            </div>
-            <div className="floating-chat-auth-body">
-              <Link className="button" href={currentUserId ? "/chat" : "/auth"}>
-                {currentUserId ? "Open Chat" : "Login / Register"}
-              </Link>
-            </div>
-          </section>
+            }
+          />
         )}
       </aside>
     </>

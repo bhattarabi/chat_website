@@ -131,11 +131,15 @@ export default async function ChatPage({ searchParams }: Props) {
               title={
                 "profiles" in conversation && conversation.profiles
                   ? conversation.profiles.full_name || conversation.profiles.email
+                  : conversation.guest_name || conversation.guest_email
+                    ? conversation.guest_name || conversation.guest_email || "Guest chat"
                   : "Customer chat"
               }
               subtitle={
                 "profiles" in conversation && conversation.profiles?.phone
                   ? `Phone: ${conversation.profiles.phone}`
+                  : conversation.guest_email
+                    ? `Guest: ${conversation.guest_email}`
                   : "Reply to this customer while tracking other chats in the inbox."
               }
             />

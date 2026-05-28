@@ -15,6 +15,8 @@ type Props = {
 
 function customerName(conversation: ConversationPreview) {
   return (
+    conversation.guest_name ||
+    conversation.guest_email ||
     conversation.profiles?.full_name ||
     conversation.profiles?.email ||
     "Customer"

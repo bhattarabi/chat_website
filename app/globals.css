@@ -1079,6 +1079,32 @@ button:disabled {
   padding: 24px;
 }
 
+.guest-chat-form {
+  align-content: start;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.guest-composer {
+  grid-template-columns: 1fr 48px;
+}
+
+.floating-chat-panel .guest-composer {
+  grid-template-columns: 1fr 44px;
+}
+
+.guest-chat-error {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin: 0;
+  padding: 0 12px 12px;
+}
+
+.guest-chat-form .guest-chat-error {
+  padding: 0;
+}
+
 .games-directory {
   background:
     radial-gradient(circle at 90% 8%, rgba(146, 188, 35, 0.16), transparent 28%),

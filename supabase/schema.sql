@@ -31,21 +31,37 @@ create table public.platform_links (
 
 create table public.conversations (
   id uuid primary key default gen_random_uuid(),
-  customer_id uuid not null references public.profiles(id) on delete cascade,
+  customer_id uuid references public.profiles(id) on delete cascade,
   assigned_admin_id uuid references public.profiles(id) on delete set null,
+  guest_name text,
+  guest_email text,
+  guest_token_hash text,
   subject text not null default 'Support',
   last_message_at timestamptz not null default now(),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint conversations_customer_or_guest_check check (
+    customer_id is not null
+    or (
+      nullif(trim(coalesce(guest_name, '')), '') is not null
+      and guest_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
+      and guest_token_hash is not null
+    )
+  )
 );
 
 create table public.messages (
   id uuid primary key default gen_random_uuid(),
   conversation_id uuid not null references public.conversations(id) on delete cascade,
-  sender_id uuid not null references public.profiles(id) on delete cascade,
+  sender_id uuid references public.profiles(id) on delete cascade,
+  sender_type text not null default 'user',
   body text,
   image_path text,
   image_url text,
   created_at timestamptz not null default now(),
+  constraint messages_sender_type_check check (
+    (sender_type = 'user' and sender_id is not null)
+    or (sender_type = 'guest' and sender_id is null)
+  ),
   constraint message_has_content check (
     nullif(trim(coalesce(body, '')), '') is not null or image_path is not null
   )
@@ -107,6 +123,8 @@ create table public.main_feature (
 create index profiles_role_idx on public.profiles(role);
 create index platform_links_active_sort_idx on public.platform_links(active, sort_order);
 create index conversations_customer_idx on public.conversations(customer_id);
+create unique index conversations_guest_token_hash_idx
+on public.conversations(guest_token_hash);
 create index messages_conversation_created_idx on public.messages(conversation_id, created_at);
 create index announcements_status_created_idx on public.announcements(status, created_at desc);
 create index promo_subscribers_active_idx on public.promo_subscribers(unsubscribed_at, subscribed_at desc);
@@ -217,6 +235,102 @@ as $$
   ) or public.is_admin(user_id);
 $$;
 
+create or replace function public.guest_token_hash(guest_token text)
+returns text
+language sql
+immutable
+security definer
+set search_path = public
+as $$
+  select encode(extensions.digest(guest_token, 'sha256'), 'hex');
+$$;
+
+create or replace function public.start_guest_chat(
+  guest_name text,
+  guest_email text,
+  guest_token text
+)
+returns table(conversation_id uuid)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  normalized_email text := lower(trim(guest_email));
+  normalized_name text := trim(guest_name);
+  token_hash text := public.guest_token_hash(guest_token);
+begin
+  if normalized_name = ''
+    or normalized_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
+    or length(guest_token) < 20
+  then
+    raise exception 'Invalid guest chat details';
+  end if;
+
+  insert into public.conversations (guest_name, guest_email, guest_token_hash)
+  values (normalized_name, normalized_email, token_hash)
+  on conflict (guest_token_hash) do update
+  set guest_name = excluded.guest_name,
+      guest_email = excluded.guest_email
+  returning id into conversation_id;
+
+  return next;
+end;
+$$;
+
+create or replace function public.guest_chat_messages(
+  chat_conversation_id uuid,
+  guest_token text
+)
+returns setof public.messages
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select messages.*
+  from public.messages
+  join public.conversations
+    on conversations.id = messages.conversation_id
+  where messages.conversation_id = chat_conversation_id
+    and conversations.guest_token_hash = public.guest_token_hash(guest_token)
+  order by messages.created_at asc;
+$$;
+
+create or replace function public.send_guest_message(
+  chat_conversation_id uuid,
+  guest_token text,
+  message_body text
+)
+returns public.messages
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  created_message public.messages;
+begin
+  if nullif(trim(coalesce(message_body, '')), '') is null then
+    raise exception 'Message body is required';
+  end if;
+
+  if not exists (
+    select 1
+    from public.conversations
+    where id = chat_conversation_id
+      and guest_token_hash = public.guest_token_hash(guest_token)
+  ) then
+    raise exception 'Guest chat not found';
+  end if;
+
+  insert into public.messages (conversation_id, sender_id, sender_type, body)
+  values (chat_conversation_id, null, 'guest', trim(message_body))
+  returning * into created_message;
+
+  return created_message;
+end;
+$$;
+
 create or replace function public.subscribe_promo(subscriber_email text, subscriber_phone text default null)
 returns boolean
 language plpgsql
@@ -322,6 +436,7 @@ on public.messages for insert
 to authenticated
 with check (
   sender_id = auth.uid()
+  and sender_type = 'user'
   and public.user_can_access_conversation(conversation_id, auth.uid())
 );
 
@@ -369,6 +484,10 @@ on public.main_feature for all
 to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
+
+grant execute on function public.start_guest_chat(text, text, text) to anon, authenticated;
+grant execute on function public.guest_chat_messages(uuid, text) to anon, authenticated;
+grant execute on function public.send_guest_message(uuid, text, text) to anon, authenticated;
 
 insert into public.main_feature (id)
 values ('main');
