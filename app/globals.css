@@ -901,7 +901,7 @@ button:disabled {
 .topbar {
   background: #1f1f1f;
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) minmax(0, 1180px) minmax(140px, 1fr);
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 1180px) max-content;
   margin: 0;
   max-width: none;
   min-height: 104px;
@@ -947,7 +947,7 @@ button:disabled {
   border: 1px solid rgba(172, 255, 110, 0.32);
   border-radius: 10px;
   color: white;
-  min-width: 148px;
+  min-width: 112px;
 }
 
 .home-auth-nav .button:hover,
@@ -958,7 +958,7 @@ button:disabled {
 .home-nav-actions {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   justify-content: flex-end;
 }
