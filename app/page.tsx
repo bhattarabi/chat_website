@@ -29,7 +29,7 @@ export default async function Home() {
   const marqueePlatforms = [...marqueeCycle, ...marqueeCycle];
 
   return (
-    <main className="home">
+    <main className="home" id="top">
       <LandingNav active="home" isAdmin={profile?.role === "admin"} isSignedIn={Boolean(user)} />
       <section className="home-hero" aria-labelledby="home-hero-heading">
         <div className="hero-logo-column">
@@ -150,8 +150,8 @@ export default async function Home() {
               <div>
                 <h2>Sign up To Play!</h2>
                 <nav aria-label="Footer navigation">
-                  <Link href="/">Home</Link>
-                  <a href="#games-heading">Platforms</a>
+                  <a href="#top">Home</a>
+                  <Link href="/platforms">Platforms</Link>
                 </nav>
               </div>
               <div className="footer-legal-group">
