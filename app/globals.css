@@ -1762,6 +1762,65 @@ textarea {
   min-height: 38px;
 }
 
+.platform-links-table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.platform-links-table .platform-col-title {
+  width: 18%;
+}
+
+.platform-links-table .platform-col-url {
+  width: 18%;
+}
+
+.platform-links-table .platform-col-image {
+  width: 24%;
+}
+
+.platform-links-table .platform-col-featured {
+  width: 9%;
+}
+
+.platform-links-table .platform-col-button {
+  width: 10%;
+}
+
+.platform-links-table .platform-col-order {
+  width: 6%;
+}
+
+.platform-links-table .platform-col-status {
+  width: 5%;
+}
+
+.platform-links-table .platform-col-actions {
+  width: 10%;
+}
+
+.platform-links-table th,
+.platform-links-table td {
+  overflow: hidden;
+}
+
+.platform-links-table tbody td:not(:last-child),
+.platform-links-table tbody a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.platform-links-table tbody a {
+  display: block;
+}
+
+.platform-links-table input,
+.platform-links-table select {
+  max-width: 100%;
+  min-width: 0;
+}
+
 .table-sort-button {
   background: transparent;
   color: var(--ink);

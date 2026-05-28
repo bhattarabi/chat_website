@@ -87,7 +87,17 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
   return (
     <>
       <div className="data-table-wrap">
-        <table className="admin-data-table">
+        <table className="admin-data-table platform-links-table">
+          <colgroup>
+            <col className="platform-col-title" />
+            <col className="platform-col-url" />
+            <col className="platform-col-image" />
+            <col className="platform-col-featured" />
+            <col className="platform-col-button" />
+            <col className="platform-col-order" />
+            <col className="platform-col-status" />
+            <col className="platform-col-actions" />
+          </colgroup>
           <thead>
             <tr>
               <SortableHeader label="Title" onClick={() => setSort(nextDirection(sort, "title"))} />
@@ -98,16 +108,12 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                 onClick={() => setSort(nextDirection(sort, "isFeatured"))}
               />
               <SortableHeader
-                label="Description"
-                onClick={() => setSort(nextDirection(sort, "description"))}
-              />
-              <SortableHeader
                 label="Button"
                 onClick={() => setSort(nextDirection(sort, "button_label"))}
               />
               <SortableHeader label="Order" onClick={() => setSort(nextDirection(sort, "sort_order"))} />
               <SortableHeader label="Status" onClick={() => setSort(nextDirection(sort, "active"))} />
-              <th>Actions</th>
+              <th aria-label="Actions" />
             </tr>
             <tr>
               <FilterCell
@@ -134,10 +140,6 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                 </select>
               </th>
               <FilterCell
-                value={filters.description}
-                onChange={(value) => setFilters({ ...filters, description: value })}
-              />
-              <FilterCell
                 value={filters.button_label}
                 onChange={(value) => setFilters({ ...filters, button_label: value })}
               />
@@ -162,11 +164,11 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
           <tbody>
             {visibleLinks.map((item) => (
               <tr key={item.id}>
-                <td>{item.title}</td>
-                <td>{item.url}</td>
-                <td>
+                <td title={item.title}>{item.title}</td>
+                <td title={item.url}>{item.url}</td>
+                <td title={item.image_url ?? undefined}>
                   {item.image_url ? (
-                    <a href={item.image_url} target="_blank" rel="noreferrer">
+                    <a href={item.image_url} target="_blank" rel="noreferrer" title={item.image_url}>
                       {item.image_url}
                     </a>
                   ) : (
@@ -174,8 +176,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                   )}
                 </td>
                 <td>{item.isFeatured ? "Featured" : "Not featured"}</td>
-                <td>{item.description || ""}</td>
-                <td>{item.button_label}</td>
+                <td title={item.button_label}>{item.button_label}</td>
                 <td>{item.sort_order}</td>
                 <td>{item.active ? "Active" : "Inactive"}</td>
                 <td>
