@@ -436,9 +436,8 @@ button:disabled {
 }
 
 .platform-image-track {
-  animation: platform-strip-scroll 7s linear infinite;
+  animation: platform-strip-scroll 28s linear infinite;
   display: flex;
-  gap: 22px;
   width: max-content;
 }
 
@@ -449,6 +448,7 @@ button:disabled {
   box-shadow: 0 12px 18px rgba(43, 216, 111, 0.36);
   flex: 0 0 158px;
   height: 126px;
+  margin-right: 22px;
   overflow: hidden;
 }
 
@@ -1923,7 +1923,11 @@ small {
     grid-template-columns: 1fr;
   }
 
-  .topbar,
+  .platform-image-track {
+    animation-duration: 300s;
+    will-change: transform;
+  }
+
   .app-header {
     align-items: flex-start;
     flex-direction: column;
@@ -1931,27 +1935,56 @@ small {
   }
 
   .topbar {
-    display: flex;
+    align-items: center;
+    display: grid;
+    gap: 10px 14px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand auth"
+      "nav nav";
     min-height: auto;
+    padding: 14px 16px;
     width: 100%;
+  }
+
+  .home-brand {
+    font-size: 1rem;
+    grid-area: brand;
+    max-width: 92px;
   }
 
   .home-main-nav {
-    gap: 22px;
+    gap: 18px;
+    grid-area: nav;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .home-main-nav a {
+    font-size: 0.98rem;
   }
 
   .home-auth-nav {
-    justify-content: flex-start;
-    width: 100%;
+    grid-area: auth;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .home-auth-nav .button,
+  .home-auth-nav button {
+    min-width: 94px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .home-nav-actions {
+    flex-wrap: nowrap;
+    gap: 6px;
+    justify-content: flex-end;
   }
 
   .app-header nav {
     flex-wrap: wrap;
-  }
-
-  .home-nav-actions {
-    justify-content: flex-start;
-    width: 100%;
   }
 
   .section-heading {

@@ -23,6 +23,10 @@ export default async function Home() {
     .select("id, imageUrl:image_url, linkUrl:link_url")
     .eq("id", "main")
     .maybeSingle<MainFeature>();
+  const platformImages = (games ?? []).filter((game) => game.image_url);
+  const marqueeRepeatCount = platformImages.length < 3 ? 12 : platformImages.length < 6 ? 8 : 5;
+  const marqueeCycle = Array.from({ length: marqueeRepeatCount }, () => platformImages).flat();
+  const marqueePlatforms = [...marqueeCycle, ...marqueeCycle];
 
   return (
     <main className="home">
@@ -45,16 +49,14 @@ export default async function Home() {
           platforms={(games ?? []).filter((game) => game.isFeatured)}
         />
       </section>
-      {(games ?? []).some((game) => game.image_url) ? (
+      {platformImages.length > 0 ? (
         <section className="platform-image-strip" aria-label="Platform games">
           <div className="platform-image-track">
-            {[...(games ?? []), ...(games ?? [])]
-              .filter((game) => game.image_url)
-              .map((game, index) => (
-                <div className="platform-image-tile" key={`${game.id}-${index}`}>
-                  <img src={game.image_url ?? ""} alt={game.title} />
-                </div>
-              ))}
+            {marqueePlatforms.map((game, index) => (
+              <div className="platform-image-tile" key={`${game.id}-${index}`}>
+                <img src={game.image_url ?? ""} alt={game.title} />
+              </div>
+            ))}
           </div>
         </section>
       ) : null}
