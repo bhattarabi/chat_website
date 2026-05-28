@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { signOut, updateProfile } from "@/app/auth/actions";
 import { ResetPasswordButton } from "@/components/reset-password-button";
 import { createClient } from "@/lib/supabase-server";
-import type { Announcement, Profile } from "@/lib/types";
+import type { Profile } from "@/lib/types";
 
 type Props = {
   searchParams: Promise<{ message?: string }>;
@@ -18,16 +18,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
   if (!user) redirect("/auth");
 
-  const [{ data: profile }, { data: announcements }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single<Profile>(),
-    supabase
-      .from("announcements")
-      .select("*")
-      .eq("status", "published")
-      .order("created_at", { ascending: false })
-      .limit(3)
-      .returns<Announcement[]>()
-  ]);
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single<Profile>();
 
   if (profile?.disabled) {
     await supabase.auth.signOut();
@@ -76,22 +67,6 @@ export default async function DashboardPage({ searchParams }: Props) {
             <ResetPasswordButton />
           </section>
         </div>
-
-        <aside className="side-column">
-          <section className="announcements">
-            <h2>Notices</h2>
-            {(announcements ?? []).length ? (
-              announcements?.map((item) => (
-                <article key={item.id}>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </article>
-              ))
-            ) : (
-              <p>No notices right now.</p>
-            )}
-          </section>
-        </aside>
       </section>
     </main>
   );

@@ -31,6 +31,8 @@ A mobile-friendly Next.js + Supabase starter based on `website_developer_instruc
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SITE_URL=https://your-production-domain.com
+RESEND_API_KEY=...
+PROMO_EMAIL_FROM="Game Links Galore <promos@your-domain.com>"
 ```
 
 `SITE_URL` is used for password reset email links. In production, set it to the public Vercel/custom domain without a trailing slash. In Supabase Auth settings, add this redirect URL to the allow-list:
@@ -38,6 +40,8 @@ SITE_URL=https://your-production-domain.com
 ```text
 https://your-production-domain.com/auth/callback
 ```
+
+`RESEND_API_KEY` and `PROMO_EMAIL_FROM` power admin bulk promotional emails. The sender domain must be verified in Resend before sends will succeed.
 
 5. Install dependencies and start the app:
 

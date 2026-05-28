@@ -3,8 +3,14 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowUpDown, Pencil, Trash2, X } from "lucide-react";
-import type { PlatformLink, Profile } from "@/lib/types";
-import { deletePlatformLink, savePlatformLink, updateUserStatus } from "@/app/admin/actions";
+import type { PlatformLink, Profile, PromoSubscriber } from "@/lib/types";
+import {
+  deletePlatformLink,
+  deletePromoSubscriber,
+  savePlatformLink,
+  updatePromoSubscriber,
+  updateUserStatus
+} from "@/app/admin/actions";
 
 type Direction = "asc" | "desc";
 type PlatformColumn =
@@ -17,6 +23,7 @@ type PlatformColumn =
   | "sort_order"
   | "active";
 type UserColumn = "full_name" | "email" | "phone" | "role" | "disabled";
+type SubscriberColumn = "email" | "phone" | "subscribed_at" | "unsubscribed_at";
 
 type SortState<TColumn extends string> = {
   column: TColumn;
@@ -378,6 +385,137 @@ export function UsersAdminTable({ users }: { users: Profile[] }) {
             <label className="check-row">
               <input name="disabled" type="checkbox" defaultChecked={editing.disabled} />
               Disabled
+            </label>
+            <button type="submit">Save changes</button>
+          </form>
+        </Modal>
+      ) : null}
+    </>
+  );
+}
+
+export function PromoSubscribersAdminTable({ subscribers }: { subscribers: PromoSubscriber[] }) {
+  const [sort, setSort] = useState<SortState<SubscriberColumn>>({
+    column: "subscribed_at",
+    direction: "desc"
+  });
+  const [filters, setFilters] = useState<Record<SubscriberColumn, string>>({
+    email: "",
+    phone: "",
+    subscribed_at: "",
+    unsubscribed_at: ""
+  });
+  const [editing, setEditing] = useState<PromoSubscriber | null>(null);
+
+  const visibleSubscribers = useMemo(() => {
+    return [...subscribers]
+      .filter((item) =>
+        (Object.keys(filters) as SubscriberColumn[]).every((column) => {
+          const filter = filters[column].toLowerCase();
+          if (!filter) return true;
+          if (column === "unsubscribed_at") {
+            return (item.unsubscribed_at ? "unsubscribed" : "active") === filter;
+          }
+          return textValue(item[column]).includes(filter);
+        })
+      )
+      .sort((a, b) => {
+        const result = compareValues(a[sort.column], b[sort.column]);
+        return sort.direction === "asc" ? result : -result;
+      });
+  }, [filters, sort, subscribers]);
+
+  return (
+    <>
+      <div className="data-table-wrap">
+        <table className="admin-data-table subscribers-table">
+          <thead>
+            <tr>
+              <SortableHeader label="Email" onClick={() => setSort(nextDirection(sort, "email"))} />
+              <SortableHeader label="Phone" onClick={() => setSort(nextDirection(sort, "phone"))} />
+              <SortableHeader
+                label="Subscribed"
+                onClick={() => setSort(nextDirection(sort, "subscribed_at"))}
+              />
+              <SortableHeader
+                label="Status"
+                onClick={() => setSort(nextDirection(sort, "unsubscribed_at"))}
+              />
+              <th>Actions</th>
+            </tr>
+            <tr>
+              <FilterCell
+                value={filters.email}
+                onChange={(value) => setFilters({ ...filters, email: value })}
+              />
+              <FilterCell
+                value={filters.phone}
+                onChange={(value) => setFilters({ ...filters, phone: value })}
+              />
+              <FilterCell
+                value={filters.subscribed_at}
+                onChange={(value) => setFilters({ ...filters, subscribed_at: value })}
+              />
+              <th>
+                <select
+                  value={filters.unsubscribed_at}
+                  onChange={(event) => setFilters({ ...filters, unsubscribed_at: event.target.value })}
+                  aria-label="Filter subscriber status"
+                >
+                  <option value="">All</option>
+                  <option value="active">Active</option>
+                  <option value="unsubscribed">Unsubscribed</option>
+                </select>
+              </th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {visibleSubscribers.map((item) => (
+              <tr key={item.id}>
+                <td>{item.email}</td>
+                <td>{item.phone || ""}</td>
+                <td>{new Date(item.subscribed_at).toLocaleString()}</td>
+                <td>{item.unsubscribed_at ? "Unsubscribed" : "Active"}</td>
+                <td>
+                  <div className="row-actions">
+                    <button
+                      type="button"
+                      className="icon-only secondary"
+                      title="Edit subscriber"
+                      onClick={() => setEditing(item)}
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <form action={deletePromoSubscriber}>
+                      <input type="hidden" name="id" value={item.id} />
+                      <button className="icon-only danger" title="Delete subscriber" type="submit">
+                        <Trash2 size={16} />
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {editing ? (
+        <Modal title="Edit Subscriber" onClose={() => setEditing(null)}>
+          <form action={updatePromoSubscriber} className="modal-form">
+            <input type="hidden" name="id" value={editing.id} />
+            <label>
+              Email
+              <input name="email" type="email" defaultValue={editing.email} required />
+            </label>
+            <label>
+              Phone
+              <input name="phone" type="tel" defaultValue={editing.phone ?? ""} />
+            </label>
+            <label className="check-row">
+              <input name="active" type="checkbox" defaultChecked={!editing.unsubscribed_at} />
+              Active
             </label>
             <button type="submit">Save changes</button>
           </form>

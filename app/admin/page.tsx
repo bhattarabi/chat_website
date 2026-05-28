@@ -2,10 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
-import { PlatformLinksAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
+import { PlatformLinksAdminTable, PromoSubscribersAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
 import { createClient } from "@/lib/supabase-server";
-import type { Announcement, Conversation, MainFeature, PlatformLink, Profile } from "@/lib/types";
-import { saveAnnouncement, saveMainFeature, savePlatformLink } from "./actions";
+import type {
+  Conversation,
+  MainFeature,
+  PlatformLink,
+  Profile,
+  PromoSubscriber,
+  PromotionalEmail
+} from "@/lib/types";
+import { saveMainFeature, savePlatformLink, savePromotionalEmail, sendSavedPromotionalEmail } from "./actions";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -23,20 +30,20 @@ export default async function AdminPage() {
 
   if (currentProfile?.role !== "admin" || currentProfile.disabled) redirect("/dashboard");
 
-  const [{ data: links }, { data: users }, { data: announcements }, { data: conversations }, { data: mainFeature }] =
-    await Promise.all([
+  const [
+    { data: links },
+    { data: users },
+    { data: conversations },
+    { data: mainFeature },
+    { data: promoSubscribers },
+    { data: promotionalEmails }
+  ] = await Promise.all([
       supabase
         .from("platform_links")
         .select("id, title, description, url, image_url, isFeatured:is_featured, button_label, active, sort_order")
         .order("sort_order")
         .returns<PlatformLink[]>(),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }).returns<Profile[]>(),
-      supabase
-        .from("announcements")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(8)
-        .returns<Announcement[]>(),
       supabase
         .from("conversations")
         .select("*, profiles:customer_id(email, full_name, phone)")
@@ -46,9 +53,22 @@ export default async function AdminPage() {
         .from("main_feature")
         .select("id, imageUrl:image_url, linkUrl:link_url")
         .eq("id", "main")
-        .maybeSingle<MainFeature>()
+        .maybeSingle<MainFeature>(),
+      supabase
+        .from("promo_subscribers")
+        .select("id, email, phone, subscribed_at, unsubscribed_at")
+        .order("subscribed_at", { ascending: false })
+        .limit(200)
+        .returns<PromoSubscriber[]>(),
+      supabase
+        .from("promotional_emails")
+        .select("id, subject, body, status, recipient_count, sent_count, send_error, sent_at, created_at")
+        .order("created_at", { ascending: false })
+        .limit(12)
+        .returns<PromotionalEmail[]>()
     ]);
   const feature = mainFeature ?? { id: "main", imageUrl: null, linkUrl: null };
+  const activePromoSubscriberCount = (promoSubscribers ?? []).filter((item) => !item.unsubscribed_at).length;
 
   return (
     <main className="app-shell">
@@ -72,7 +92,8 @@ export default async function AdminPage() {
       <section className="admin-tabs">
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
         <input id="admin-tab-homepage" name="admin-tabs" type="radio" />
-        <input id="admin-tab-announcements" name="admin-tabs" type="radio" />
+        <input id="admin-tab-promos" name="admin-tabs" type="radio" />
+        <input id="admin-tab-subscribers" name="admin-tabs" type="radio" />
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
         <input id="admin-tab-chats" name="admin-tabs" type="radio" />
 
@@ -83,8 +104,11 @@ export default async function AdminPage() {
           <label htmlFor="admin-tab-homepage" role="tab">
             Homepage
           </label>
-          <label htmlFor="admin-tab-announcements" role="tab">
-            Announcements
+          <label htmlFor="admin-tab-promos" role="tab">
+            Promo Emails
+          </label>
+          <label htmlFor="admin-tab-subscribers" role="tab">
+            Subscribers
           </label>
           <label htmlFor="admin-tab-users" role="tab">
             Users
@@ -155,24 +179,69 @@ export default async function AdminPage() {
             </form>
           </section>
 
-          <section className="admin-section admin-tab-panel announcements-panel">
-            <h1>Announcements</h1>
-            <form action={saveAnnouncement} className="panel-form">
-              <input name="title" placeholder="Title" required />
-              <textarea name="body" placeholder="Notice text" rows={4} required />
-              <label className="check-row">
-                <input name="published" type="checkbox" defaultChecked />
-                Published
-              </label>
-              <button type="submit">Send notice</button>
+          <section className="admin-section admin-tab-panel promos-panel">
+            <h1>Promo Emails</h1>
+            <div className="admin-metric-row">
+              <div className="admin-metric">
+                <span>Active subscribers</span>
+                <strong>{activePromoSubscriberCount}</strong>
+              </div>
+              <div className="admin-metric">
+                <span>Total collected</span>
+                <strong>{promoSubscribers?.length ?? 0}</strong>
+              </div>
+            </div>
+            <form action={savePromotionalEmail} className="panel-form">
+              <input name="subject" placeholder="Email subject" required />
+              <textarea name="body" placeholder="Promotional email text" rows={7} required />
+              <div className="row-actions">
+                <button name="intent" type="submit" value="draft">
+                  Save draft
+                </button>
+                <button name="intent" type="submit" value="send">
+                  Save and send
+                </button>
+              </div>
             </form>
-            {(announcements ?? []).map((item) => (
-              <article className="notice-item" key={item.id}>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                <small>{item.status}</small>
-              </article>
-            ))}
+
+            <div className="promo-admin-grid">
+              <h2>Recent Campaigns</h2>
+              {(promotionalEmails ?? []).map((item) => (
+                <article className="notice-item" key={item.id}>
+                  <div className="notice-heading-row">
+                    <h3>{item.subject}</h3>
+                    <small>{item.status}</small>
+                  </div>
+                  <p>{item.body}</p>
+                  <small>
+                    {item.sent_count}/{item.recipient_count} sent
+                    {item.sent_at ? ` on ${new Date(item.sent_at).toLocaleString()}` : ""}
+                  </small>
+                  {item.send_error ? <p className="form-message error">{item.send_error}</p> : null}
+                  {item.status !== "sending" ? (
+                    <form action={sendSavedPromotionalEmail} className="compact-form">
+                      <input name="id" type="hidden" value={item.id} />
+                      <button type="submit">Send to subscribers</button>
+                    </form>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="admin-section admin-tab-panel subscribers-panel">
+            <h1>Subscribers</h1>
+            <div className="admin-metric-row">
+              <div className="admin-metric">
+                <span>Active subscribers</span>
+                <strong>{activePromoSubscriberCount}</strong>
+              </div>
+              <div className="admin-metric">
+                <span>Total collected</span>
+                <strong>{promoSubscribers?.length ?? 0}</strong>
+              </div>
+            </div>
+            <PromoSubscribersAdminTable subscribers={promoSubscribers ?? []} />
           </section>
 
           <section className="admin-section admin-tab-panel users-panel">

@@ -771,6 +771,16 @@ button:disabled {
   text-align: center;
 }
 
+.footer-subscribe .footer-form-message {
+  color: #d9ff18;
+  font-weight: 700;
+  margin-top: 0;
+}
+
+.footer-subscribe .footer-form-message.error {
+  color: #ffb3a2;
+}
+
 .landing-footer-brand {
   align-items: end;
   display: flex;
@@ -1597,7 +1607,8 @@ textarea {
 
 #admin-tab-links:checked ~ .admin-tab-list label[for="admin-tab-links"],
 #admin-tab-homepage:checked ~ .admin-tab-list label[for="admin-tab-homepage"],
-#admin-tab-announcements:checked ~ .admin-tab-list label[for="admin-tab-announcements"],
+#admin-tab-promos:checked ~ .admin-tab-list label[for="admin-tab-promos"],
+#admin-tab-subscribers:checked ~ .admin-tab-list label[for="admin-tab-subscribers"],
 #admin-tab-users:checked ~ .admin-tab-list label[for="admin-tab-users"],
 #admin-tab-chats:checked ~ .admin-tab-list label[for="admin-tab-chats"] {
   background: var(--accent);
@@ -1611,10 +1622,95 @@ textarea {
 
 #admin-tab-links:checked ~ .admin-tab-panels .links-panel,
 #admin-tab-homepage:checked ~ .admin-tab-panels .homepage-panel,
-#admin-tab-announcements:checked ~ .admin-tab-panels .announcements-panel,
+#admin-tab-promos:checked ~ .admin-tab-panels .promos-panel,
+#admin-tab-subscribers:checked ~ .admin-tab-panels .subscribers-panel,
 #admin-tab-users:checked ~ .admin-tab-panels .users-panel,
 #admin-tab-chats:checked ~ .admin-tab-panels .chats-panel {
   display: block;
+}
+
+.admin-metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.admin-metric {
+  background: #eef4ff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+  padding: 14px;
+}
+
+.admin-metric span,
+.subscriber-row small,
+.notice-heading-row small {
+  color: var(--muted);
+}
+
+.admin-metric strong {
+  color: var(--accent-strong);
+  font-size: 1.8rem;
+}
+
+.promo-admin-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 18px;
+}
+
+.notice-heading-row {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.notice-heading-row h3 {
+  margin: 0;
+}
+
+.form-message.error {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.compact-form {
+  margin-top: 12px;
+}
+
+.subscriber-list {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.subscriber-row {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.subscriber-row:last-child {
+  border-bottom: 0;
+}
+
+.subscriber-row span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.subscribers-table {
+  min-width: 760px;
 }
 
 .inline-form {

@@ -29,6 +29,26 @@ export type Announcement = {
   created_at: string;
 };
 
+export type PromoSubscriber = {
+  id: string;
+  email: string;
+  phone: string | null;
+  subscribed_at: string;
+  unsubscribed_at: string | null;
+};
+
+export type PromotionalEmail = {
+  id: string;
+  subject: string;
+  body: string;
+  status: "draft" | "sending" | "sent" | "failed";
+  recipient_count: number;
+  sent_count: number;
+  send_error: string | null;
+  sent_at: string | null;
+  created_at: string;
+};
+
 export type MainFeature = {
   id: string;
   imageUrl: string | null;
