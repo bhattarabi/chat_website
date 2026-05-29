@@ -5,9 +5,10 @@ import type { ReactNode } from "react";
 import { Send } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { LocalTime } from "@/components/local-time";
-import type { Message } from "@/lib/types";
+import type { ChatAssignmentInfo, Message } from "@/lib/types";
 
 type Props = {
+  agentName?: string | null;
   actions?: ReactNode;
 };
 
@@ -25,13 +26,14 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export function GuestChatRoom({ actions }: Props) {
+export function GuestChatRoom({ agentName, actions }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [session, setSession] = useState<GuestSession | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [body, setBody] = useState("");
+  const [resolvedAgentName, setResolvedAgentName] = useState<string | null>(agentName ?? null);
   const [status, setStatus] = useState<"idle" | "loading" | "sending">("idle");
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -46,6 +48,20 @@ export function GuestChatRoom({ actions }: Props) {
     setMessages((data ?? []) as Message[]);
   }
 
+  async function loadAssignment(nextSession: GuestSession) {
+    const { data, error: detailsError } = await supabase.rpc("guest_chat_details", {
+      chat_conversation_id: nextSession.conversationId,
+      guest_token: nextSession.token
+    });
+
+    if (detailsError) throw detailsError;
+
+    const details = (Array.isArray(data) ? data[0] : data) as ChatAssignmentInfo | null | undefined;
+    const nextName = details?.assigned_agent_name ?? null;
+
+    setResolvedAgentName(nextName);
+  }
+
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);
     if (!saved) return;
@@ -56,9 +72,10 @@ export function GuestChatRoom({ actions }: Props) {
       setSession(parsed);
       setName(parsed.name);
       setEmail(parsed.email);
-      loadMessages(parsed).catch(() => {
+      Promise.all([loadMessages(parsed), loadAssignment(parsed)]).catch(() => {
         window.localStorage.removeItem(storageKey);
         setSession(null);
+        setResolvedAgentName(null);
       });
     } catch {
       window.localStorage.removeItem(storageKey);
@@ -70,6 +87,7 @@ export function GuestChatRoom({ actions }: Props) {
 
     const interval = window.setInterval(() => {
       loadMessages(session).catch(() => undefined);
+      loadAssignment(session).catch(() => undefined);
     }, messageRefreshMs);
 
     return () => window.clearInterval(interval);
@@ -82,6 +100,7 @@ export function GuestChatRoom({ actions }: Props) {
     function refreshWhenActive() {
       if (document.visibilityState === "visible") {
         loadMessages(activeSession).catch(() => undefined);
+        loadAssignment(activeSession).catch(() => undefined);
       }
     }
 
@@ -136,7 +155,7 @@ export function GuestChatRoom({ actions }: Props) {
 
       window.localStorage.setItem(storageKey, JSON.stringify(nextSession));
       setSession(nextSession);
-      await loadMessages(nextSession);
+      await Promise.all([loadMessages(nextSession), loadAssignment(nextSession)]);
     } catch {
       setError("Chat is unavailable right now. Please try again.");
     } finally {
@@ -172,9 +191,15 @@ export function GuestChatRoom({ actions }: Props) {
   return (
     <section className="chat-shell guest-chat">
       <div className="chat-header">
-        <div>
+        <div className="chat-header-copy">
           <h1>Support chat</h1>
           <p>{session ? "Messages appear instantly." : "Enter your details to start chatting."}</p>
+          {session ? (
+            <p className="chat-agent-label">
+              <span>Agent</span>
+              <strong>{resolvedAgentName || "Waiting for assignment"}</strong>
+            </p>
+          ) : null}
         </div>
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>
@@ -182,15 +207,22 @@ export function GuestChatRoom({ actions }: Props) {
       {session ? (
         <>
           <div className="messages" aria-live="polite">
-            {messages.map((message) => (
-              <article
-                className={message.sender_type === "guest" ? "message mine" : "message"}
-                key={message.id}
-              >
-                {message.body ? <p>{message.body}</p> : null}
-                <LocalTime value={message.created_at} />
-              </article>
-            ))}
+            {messages.map((message) =>
+              message.sender_type === "system" ? (
+                <p className="chat-assignment-notice" key={message.id}>
+                  <span>{message.body}</span>
+                  <LocalTime value={message.created_at} />
+                </p>
+              ) : (
+                <article
+                  className={message.sender_type === "guest" ? "message mine" : "message"}
+                  key={message.id}
+                >
+                  {message.body ? <p>{message.body}</p> : null}
+                  <LocalTime value={message.created_at} />
+                </article>
+              )
+            )}
             <div ref={endRef} />
           </div>
           <form className="composer guest-composer" onSubmit={handleSend}>

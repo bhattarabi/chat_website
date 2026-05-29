@@ -11,6 +11,7 @@ type Props = {
   conversationId: string;
   currentUserId: string;
   initialMessages: Message[];
+  agentName?: string | null;
   title?: string;
   subtitle?: string;
   actions?: ReactNode;
@@ -49,8 +50,9 @@ export function ChatRoom({
   conversationId,
   currentUserId,
   initialMessages,
+  agentName,
   title = "Support chat",
-  subtitle = "Messages appear instantly. Attach screenshots or photos when helpful.",
+  subtitle = "",
   actions
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
@@ -146,15 +148,21 @@ export function ChatRoom({
   return (
     <section className="chat-shell">
       <div className="chat-header">
-        <div>
+        <div className="chat-header-copy">
           <h1>{title}</h1>
           <p>{subtitle}</p>
+          {agentName !== undefined ? (
+            <p className="chat-agent-label">
+              <strong>Agent: {agentName || "Waiting for assignment"}</strong>
+            </p>
+          ) : null}
         </div>
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>
       <div className="messages" aria-live="polite">
         {messages.map((message, index) => {
           const mine = message.sender_id === currentUserId;
+          const system = message.sender_type === "system";
           const timeZone = mounted ? undefined : "UTC";
           const messageDateKey = getDateKey(message.created_at, timeZone);
           const previousMessage = messages[index - 1];
@@ -168,11 +176,18 @@ export function ChatRoom({
                   {formatDateLabel(message.created_at, timeZone)}
                 </time>
               ) : null}
-              <article className={mine ? "message mine" : "message"}>
-                {message.body ? <p>{message.body}</p> : null}
-                {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
-                <LocalTime value={message.created_at} />
-              </article>
+              {system ? (
+                <p className="chat-assignment-notice">
+                  <LocalTime value={message.created_at} />
+                  <span>{message.body}</span>
+                </p>
+              ) : (
+                <article className={mine ? "message mine" : "message"}>
+                  {message.body ? <p>{message.body}</p> : null}
+                  {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
+                  <LocalTime value={message.created_at} />
+                </article>
+              )}
             </Fragment>
           );
         })}

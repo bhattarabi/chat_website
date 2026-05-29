@@ -72,11 +72,17 @@ export type ConversationPreview = Conversation & {
   latest_message?: Pick<Message, "body" | "image_url" | "sender_id" | "created_at"> | null;
 };
 
+export type ChatAssignmentInfo = {
+  conversation_id: string;
+  assigned_agent_id: string | null;
+  assigned_agent_name: string | null;
+};
+
 export type Message = {
   id: string;
   conversation_id: string;
   sender_id: string | null;
-  sender_type: "user" | "guest";
+  sender_type: "user" | "guest" | "system";
   body: string | null;
   image_path: string | null;
   image_url: string | null;

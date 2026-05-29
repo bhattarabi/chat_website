@@ -16,10 +16,61 @@ create table if not exists public.chat_assignment_state (
 create index if not exists conversations_assigned_admin_idx
 on public.conversations(assigned_admin_id);
 
+alter table public.messages
+drop constraint if exists messages_sender_type_check;
+
+alter table public.messages
+add constraint messages_sender_type_check check (
+  (sender_type = 'user' and sender_id is not null)
+  or (sender_type = 'guest' and sender_id is null)
+  or (sender_type = 'system' and sender_id is null)
+);
+
 drop trigger if exists chat_assignment_state_touch_updated_at on public.chat_assignment_state;
 create trigger chat_assignment_state_touch_updated_at
 before update on public.chat_assignment_state
 for each row execute function public.touch_updated_at();
+
+create or replace function public.log_chat_assignment_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  agent_name text;
+begin
+  if old.assigned_admin_id is not distinct from new.assigned_admin_id then
+    return new;
+  end if;
+
+  if new.assigned_admin_id is null then
+    insert into public.messages (conversation_id, sender_id, sender_type, body)
+    values (new.id, null, 'system', 'Chat reassigned. Waiting for an agent.');
+    return new;
+  end if;
+
+  select coalesce(nullif(full_name, ''), email)
+  into agent_name
+  from public.profiles
+  where id = new.assigned_admin_id;
+
+  insert into public.messages (conversation_id, sender_id, sender_type, body)
+  values (
+    new.id,
+    null,
+    'system',
+    'Chat reassigned to ' || coalesce(agent_name, 'an agent') || '.'
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists conversations_log_chat_assignment_change on public.conversations;
+create trigger conversations_log_chat_assignment_change
+after update of assigned_admin_id on public.conversations
+for each row execute function public.log_chat_assignment_change();
 
 create or replace function public.is_chat_agent(user_id uuid)
 returns boolean
@@ -144,13 +195,18 @@ before insert on public.conversations
 for each row execute function public.assign_next_chat_agent();
 
 create or replace function public.current_customer_chat()
-returns table(conversation_id uuid)
+returns table(
+  conversation_id uuid,
+  assigned_agent_id uuid,
+  assigned_agent_name text
+)
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
   current_user_id uuid := auth.uid();
+  chat_id uuid;
 begin
   if current_user_id is null then
     raise exception 'Authentication required';
@@ -167,18 +223,28 @@ begin
   end if;
 
   select conversations.id
-  into conversation_id
+  into chat_id
   from public.conversations
   where customer_id = current_user_id
   order by created_at asc
   limit 1;
 
-  if conversation_id is null then
+  if chat_id is null then
     insert into public.conversations (customer_id)
     values (current_user_id)
-    returning id into conversation_id;
+    returning id into chat_id;
   end if;
 
+  select
+    conversations.assigned_admin_id,
+    coalesce(nullif(profiles.full_name, ''), profiles.email)
+  into assigned_agent_id, assigned_agent_name
+  from public.conversations
+  left join public.profiles
+    on profiles.id = conversations.assigned_admin_id
+  where conversations.id = chat_id;
+
+  conversation_id := chat_id;
   return next;
 end;
 $$;

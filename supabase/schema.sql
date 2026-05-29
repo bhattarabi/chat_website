@@ -68,6 +68,7 @@ create table public.messages (
   constraint messages_sender_type_check check (
     (sender_type = 'user' and sender_id is not null)
     or (sender_type = 'guest' and sender_id is null)
+    or (sender_type = 'system' and sender_id is null)
   ),
   constraint message_has_content check (
     nullif(trim(coalesce(body, '')), '') is not null or image_path is not null
@@ -197,6 +198,46 @@ $$;
 create trigger messages_touch_conversation
 after insert on public.messages
 for each row execute function public.touch_conversation_last_message();
+
+create or replace function public.log_chat_assignment_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  agent_name text;
+begin
+  if old.assigned_admin_id is not distinct from new.assigned_admin_id then
+    return new;
+  end if;
+
+  if new.assigned_admin_id is null then
+    insert into public.messages (conversation_id, sender_id, sender_type, body)
+    values (new.id, null, 'system', 'Chat reassigned. Waiting for an agent.');
+    return new;
+  end if;
+
+  select coalesce(nullif(full_name, ''), email)
+  into agent_name
+  from public.profiles
+  where id = new.assigned_admin_id;
+
+  insert into public.messages (conversation_id, sender_id, sender_type, body)
+  values (
+    new.id,
+    null,
+    'system',
+    'Chat reassigned to ' || coalesce(agent_name, 'an agent') || '.'
+  );
+
+  return new;
+end;
+$$;
+
+create trigger conversations_log_chat_assignment_change
+after update of assigned_admin_id on public.conversations
+for each row execute function public.log_chat_assignment_change();
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -355,13 +396,18 @@ before insert on public.conversations
 for each row execute function public.assign_next_chat_agent();
 
 create or replace function public.current_customer_chat()
-returns table(conversation_id uuid)
+returns table(
+  conversation_id uuid,
+  assigned_agent_id uuid,
+  assigned_agent_name text
+)
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
   current_user_id uuid := auth.uid();
+  chat_id uuid;
 begin
   if current_user_id is null then
     raise exception 'Authentication required';
@@ -378,18 +424,28 @@ begin
   end if;
 
   select conversations.id
-  into conversation_id
+  into chat_id
   from public.conversations
   where customer_id = current_user_id
   order by created_at asc
   limit 1;
 
-  if conversation_id is null then
+  if chat_id is null then
     insert into public.conversations (customer_id)
     values (current_user_id)
-    returning id into conversation_id;
+    returning id into chat_id;
   end if;
 
+  select
+    conversations.assigned_admin_id,
+    coalesce(nullif(profiles.full_name, ''), profiles.email)
+  into assigned_agent_id, assigned_agent_name
+  from public.conversations
+  left join public.profiles
+    on profiles.id = conversations.assigned_admin_id
+  where conversations.id = chat_id;
+
+  conversation_id := chat_id;
   return next;
 end;
 $$;
@@ -454,6 +510,31 @@ as $$
   where messages.conversation_id = chat_conversation_id
     and conversations.guest_token_hash = public.guest_token_hash(guest_token)
   order by messages.created_at asc;
+$$;
+
+create or replace function public.guest_chat_details(
+  chat_conversation_id uuid,
+  guest_token text
+)
+returns table(
+  conversation_id uuid,
+  assigned_agent_id uuid,
+  assigned_agent_name text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    conversations.id,
+    conversations.assigned_admin_id,
+    coalesce(nullif(profiles.full_name, ''), profiles.email)
+  from public.conversations
+  left join public.profiles
+    on profiles.id = conversations.assigned_admin_id
+  where conversations.id = chat_conversation_id
+    and conversations.guest_token_hash = public.guest_token_hash(guest_token);
 $$;
 
 create or replace function public.send_guest_message(
@@ -653,6 +734,7 @@ with check (public.is_admin(auth.uid()));
 
 grant execute on function public.start_guest_chat(text, text, text) to anon, authenticated;
 grant execute on function public.guest_chat_messages(uuid, text) to anon, authenticated;
+grant execute on function public.guest_chat_details(uuid, text) to anon, authenticated;
 grant execute on function public.send_guest_message(uuid, text, text) to anon, authenticated;
 grant execute on function public.current_customer_chat() to authenticated;
 

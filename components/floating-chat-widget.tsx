@@ -7,7 +7,7 @@ import { Maximize2, MessageCircle, Minus } from "lucide-react";
 import { ChatRoom } from "@/components/chat-room";
 import { GuestChatRoom } from "@/components/guest-chat-room";
 import { createClient } from "@/lib/supabase-browser";
-import type { Message, Profile } from "@/lib/types";
+import type { ChatAssignmentInfo, Message, Profile } from "@/lib/types";
 
 type Props = {
   currentUserId: string | null;
@@ -32,6 +32,7 @@ export function FloatingChatWidget({
   const [resolvedConversationId, setResolvedConversationId] = useState(conversationId);
   const [resolvedMessages, setResolvedMessages] = useState(initialMessages);
   const [resolvedOpensFullPage, setResolvedOpensFullPage] = useState(opensFullPage);
+  const [assignmentInfo, setAssignmentInfo] = useState<ChatAssignmentInfo | null>(null);
   const [chatStatus, setChatStatus] = useState<"idle" | "loading" | "ready" | "error">(
     currentUserId && (conversationId || opensFullPage) ? "ready" : "idle"
   );
@@ -92,6 +93,7 @@ export function FloatingChatWidget({
         setResolvedConversationId(null);
         setResolvedMessages([]);
         setResolvedOpensFullPage(false);
+        setAssignmentInfo(null);
         setChatStatus("idle");
         return;
       }
@@ -114,6 +116,7 @@ export function FloatingChatWidget({
         setResolvedConversationId(null);
         setResolvedMessages([]);
         setResolvedOpensFullPage(false);
+        setAssignmentInfo(null);
         setChatStatus("idle");
         return;
       }
@@ -123,6 +126,7 @@ export function FloatingChatWidget({
         setResolvedConversationId(null);
         setResolvedMessages([]);
         setResolvedOpensFullPage(true);
+        setAssignmentInfo(null);
         setChatStatus("ready");
         return;
       }
@@ -132,9 +136,11 @@ export function FloatingChatWidget({
       if (!active) return;
       if (chatError) throw chatError;
 
-      const conversationId = Array.isArray(customerChat)
-        ? customerChat[0]?.conversation_id
-        : customerChat?.conversation_id;
+      const chatInfo = (Array.isArray(customerChat) ? customerChat[0] : customerChat) as
+        | ChatAssignmentInfo
+        | null
+        | undefined;
+      const conversationId = chatInfo?.conversation_id;
 
       if (!conversationId) throw new Error("Could not load support chat.");
 
@@ -152,6 +158,7 @@ export function FloatingChatWidget({
       setResolvedConversationId(conversationId);
       setResolvedMessages(messages ?? []);
       setResolvedOpensFullPage(false);
+      setAssignmentInfo(chatInfo ?? null);
       setChatStatus("ready");
     }
 
@@ -161,6 +168,7 @@ export function FloatingChatWidget({
       setResolvedConversationId(null);
       setResolvedMessages([]);
       setResolvedOpensFullPage(false);
+      setAssignmentInfo(null);
       setChatStatus("error");
     }
 
@@ -179,6 +187,43 @@ export function FloatingChatWidget({
       subscription.unsubscribe();
     };
   }, [resolveAttempt, supabase]);
+
+  useEffect(() => {
+    if (!resolvedUserId || !resolvedConversationId || resolvedOpensFullPage) return;
+
+    let active = true;
+
+    async function refreshAssignment() {
+      const { data, error } = await supabase.rpc("current_customer_chat");
+      if (!active || error) return;
+
+      const nextInfo = (Array.isArray(data) ? data[0] : data) as ChatAssignmentInfo | null | undefined;
+      if (!nextInfo) return;
+
+      setAssignmentInfo(nextInfo);
+    }
+
+    const channel = supabase
+      .channel(`conversation-assignment:${resolvedConversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversations",
+          filter: `id=eq.${resolvedConversationId}`
+        },
+        () => {
+          refreshAssignment().catch(() => undefined);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [resolvedConversationId, resolvedOpensFullPage, resolvedUserId, supabase]);
 
   function toggleChat(open: boolean) {
     setIsOpen(open);
@@ -226,6 +271,7 @@ export function FloatingChatWidget({
             conversationId={resolvedConversationId}
             currentUserId={resolvedUserId}
             initialMessages={resolvedMessages}
+            agentName={assignmentInfo?.assigned_agent_name ?? null}
             actions={
               <>
                 <Link className="chat-icon-button" href={fullPageHref} aria-label="Open full page chat">

@@ -39,6 +39,7 @@ alter table public.messages
 add constraint messages_sender_type_check check (
   (sender_type = 'user' and sender_id is not null)
   or (sender_type = 'guest' and sender_id is null)
+  or (sender_type = 'system' and sender_id is null)
 );
 
 create or replace function public.guest_token_hash(guest_token text)
@@ -103,6 +104,31 @@ as $$
   order by messages.created_at asc;
 $$;
 
+create or replace function public.guest_chat_details(
+  chat_conversation_id uuid,
+  guest_token text
+)
+returns table(
+  conversation_id uuid,
+  assigned_agent_id uuid,
+  assigned_agent_name text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    conversations.id,
+    conversations.assigned_admin_id,
+    coalesce(nullif(profiles.full_name, ''), profiles.email)
+  from public.conversations
+  left join public.profiles
+    on profiles.id = conversations.assigned_admin_id
+  where conversations.id = chat_conversation_id
+    and conversations.guest_token_hash = public.guest_token_hash(guest_token);
+$$;
+
 create or replace function public.send_guest_message(
   chat_conversation_id uuid,
   guest_token text,
@@ -139,4 +165,5 @@ $$;
 
 grant execute on function public.start_guest_chat(text, text, text) to anon, authenticated;
 grant execute on function public.guest_chat_messages(uuid, text) to anon, authenticated;
+grant execute on function public.guest_chat_details(uuid, text) to anon, authenticated;
 grant execute on function public.send_guest_message(uuid, text, text) to anon, authenticated;
