@@ -1,4 +1,4 @@
-export type Role = "customer" | "admin";
+export type Role = "customer" | "agent" | "admin";
 
 export type Profile = {
   id: string;
@@ -58,12 +58,14 @@ export type MainFeature = {
 export type Conversation = {
   id: string;
   customer_id: string | null;
+  assigned_admin_id: string | null;
   guest_name: string | null;
   guest_email: string | null;
   guest_token_hash: string | null;
   subject: string;
   last_message_at: string;
   profiles?: Pick<Profile, "email" | "full_name" | "phone"> | null;
+  assigned_profile?: Pick<Profile, "email" | "full_name"> | null;
 };
 
 export type ConversationPreview = Conversation & {

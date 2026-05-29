@@ -11,6 +11,7 @@ type Props = {
   conversations: ConversationPreview[];
   selectedConversationId: string | null;
   currentUserId: string;
+  isAdmin: boolean;
 };
 
 function customerName(conversation: ConversationPreview) {
@@ -30,10 +31,15 @@ function previewText(conversation: ConversationPreview) {
   return "New message";
 }
 
+function assignedAgentName(conversation: ConversationPreview) {
+  return conversation.assigned_profile?.full_name || conversation.assigned_profile?.email || "Unassigned";
+}
+
 export function AdminChatInbox({
   conversations,
   selectedConversationId,
-  currentUserId
+  currentUserId,
+  isAdmin
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [items, setItems] = useState(conversations);
@@ -92,7 +98,7 @@ export function AdminChatInbox({
           } else {
             const { data } = await supabase
               .from("conversations")
-              .select("*, profiles:customer_id(email, full_name, phone)")
+              .select("*, profiles:customer_id(email, full_name, phone), assigned_profile:assigned_admin_id(email, full_name)")
               .eq("id", message.conversation_id)
               .single<ConversationPreview>();
 
@@ -136,7 +142,7 @@ export function AdminChatInbox({
   return (
     <aside className="chat-inbox" aria-label="Customer chat inbox">
       <div className="chat-inbox-header">
-        <h2>Customer chats</h2>
+        <h2>{isAdmin ? "Customer chats" : "Assigned chats"}</h2>
         <span>{items.length}</span>
       </div>
       <div className="chat-inbox-list">
@@ -172,6 +178,7 @@ export function AdminChatInbox({
                     {latestFromAdmin ? "You: " : ""}
                     {previewText(conversation)}
                   </small>
+                  {isAdmin ? <small>Agent: {assignedAgentName(conversation)}</small> : null}
                 </span>
                 <LocalTime value={conversation.last_message_at} />
               </Link>

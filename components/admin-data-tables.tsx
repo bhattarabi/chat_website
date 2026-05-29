@@ -321,6 +321,7 @@ export function UsersAdminTable({ users }: { users: Profile[] }) {
                   aria-label="Filter role"
                 >
                   <option value="">All</option>
+                  <option value="agent">Agent</option>
                   <option value="admin">Admin</option>
                   <option value="customer">Customer</option>
                 </select>
@@ -379,9 +380,13 @@ export function UsersAdminTable({ users }: { users: Profile[] }) {
               <span>Phone</span>
               <strong>{editing.phone || "No phone saved"}</strong>
             </div>
-            <label className="check-row">
-              <input name="admin" type="checkbox" defaultChecked={editing.role === "admin"} />
-              Admin
+            <label>
+              Role
+              <select name="role" defaultValue={editing.role}>
+                <option value="customer">Customer</option>
+                <option value="agent">Agent</option>
+                <option value="admin">Admin</option>
+              </select>
             </label>
             <label className="check-row">
               <input name="disabled" type="checkbox" defaultChecked={editing.disabled} />

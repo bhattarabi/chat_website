@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Minimize2 } from "lucide-react";
+import { updateChatAssignment } from "@/app/admin/actions";
 import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
 import type { Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
@@ -10,6 +11,28 @@ import { ChatRoom } from "@/components/chat-room";
 type Props = {
   searchParams: Promise<{ conversation?: string; returnTo?: string }>;
 };
+
+function conversationTitle(conversation: ConversationPreview | Conversation) {
+  if ("profiles" in conversation && conversation.profiles) {
+    return conversation.profiles.full_name || conversation.profiles.email;
+  }
+
+  return conversation.guest_name || conversation.guest_email || "Customer chat";
+}
+
+function conversationSubtitle(conversation: ConversationPreview | Conversation) {
+  const contact =
+    "profiles" in conversation && conversation.profiles?.phone
+      ? `Phone: ${conversation.profiles.phone}`
+      : conversation.guest_email
+        ? `Guest: ${conversation.guest_email}`
+        : null;
+  const assignment = conversation.assigned_profile
+    ? `Assigned to ${conversation.assigned_profile.full_name || conversation.assigned_profile.email}`
+    : "Unassigned";
+
+  return contact ? `${contact} - ${assignment}` : assignment;
+}
 
 export default async function ChatPage({ searchParams }: Props) {
   const { conversation: selectedConversationId, returnTo } = await searchParams;
@@ -31,6 +54,8 @@ export default async function ChatPage({ searchParams }: Props) {
 
   let conversation: ConversationPreview | Conversation | null = null;
   let conversations: ConversationPreview[] = [];
+  let agents: Profile[] = [];
+  const isChatStaff = profile.role === "admin" || profile.role === "agent";
 
   if (profile.role === "customer") {
     const existing = await supabase
@@ -49,11 +74,11 @@ export default async function ChatPage({ searchParams }: Props) {
         .single<Conversation>();
       conversation = created.data;
     }
-  } else {
-    const [{ data: adminConversations }, { data: latestMessages }] = await Promise.all([
+  } else if (isChatStaff) {
+    const [{ data: adminConversations }, { data: latestMessages }, { data: activeAgents }] = await Promise.all([
       supabase
         .from("conversations")
-        .select("*, profiles:customer_id(email, full_name, phone)")
+        .select("*, profiles:customer_id(email, full_name, phone), assigned_profile:assigned_admin_id(email, full_name)")
         .order("last_message_at", { ascending: false })
         .returns<ConversationPreview[]>(),
       supabase
@@ -61,8 +86,18 @@ export default async function ChatPage({ searchParams }: Props) {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(200)
-        .returns<Message[]>()
+        .returns<Message[]>(),
+      profile.role === "admin"
+        ? supabase
+            .from("profiles")
+            .select("*")
+            .eq("role", "agent")
+            .eq("disabled", false)
+            .order("full_name")
+            .returns<Profile[]>()
+        : Promise.resolve({ data: [] as Profile[] })
     ]);
+    agents = activeAgents ?? [];
 
     const latestByConversation = new Map<string, Message>();
     for (const message of latestMessages ?? []) {
@@ -111,12 +146,13 @@ export default async function ChatPage({ searchParams }: Props) {
           </form>
         </nav>
       </header>
-      {profile.role === "admin" ? (
+      {isChatStaff ? (
         <section className="admin-chat-layout">
           <AdminChatInbox
             conversations={conversations}
             selectedConversationId={conversation?.id ?? null}
             currentUserId={user.id}
+            isAdmin={profile.role === "admin"}
           />
           {conversation ? (
             <ChatRoom
@@ -124,24 +160,32 @@ export default async function ChatPage({ searchParams }: Props) {
               currentUserId={user.id}
               initialMessages={messages ?? []}
               actions={
-                <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
-                  <Minimize2 aria-hidden="true" size={18} />
-                </Link>
+                <>
+                  {profile.role === "admin" ? (
+                    <form action={updateChatAssignment} className="chat-assignment-form">
+                      <input type="hidden" name="conversation_id" value={conversation.id} />
+                      <select
+                        name="assigned_admin_id"
+                        aria-label="Assigned chat agent"
+                        defaultValue={conversation.assigned_admin_id ?? ""}
+                      >
+                        <option value="">Unassigned</option>
+                        {agents.map((agent) => (
+                          <option value={agent.id} key={agent.id}>
+                            {agent.full_name || agent.email}
+                          </option>
+                        ))}
+                      </select>
+                      <button type="submit">Assign</button>
+                    </form>
+                  ) : null}
+                  <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
+                    <Minimize2 aria-hidden="true" size={18} />
+                  </Link>
+                </>
               }
-              title={
-                "profiles" in conversation && conversation.profiles
-                  ? conversation.profiles.full_name || conversation.profiles.email
-                  : conversation.guest_name || conversation.guest_email
-                    ? conversation.guest_name || conversation.guest_email || "Guest chat"
-                  : "Customer chat"
-              }
-              subtitle={
-                "profiles" in conversation && conversation.profiles?.phone
-                  ? `Phone: ${conversation.profiles.phone}`
-                  : conversation.guest_email
-                    ? `Guest: ${conversation.guest_email}`
-                  : "Reply to this customer while tracking other chats in the inbox."
-              }
+              title={conversationTitle(conversation)}
+              subtitle={conversationSubtitle(conversation)}
             />
           ) : (
             <section className="empty-state">

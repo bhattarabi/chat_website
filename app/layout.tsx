@@ -65,7 +65,7 @@ export default async function RootLayout({
             currentUserId={user && profile && !profile.disabled ? user.id : null}
             conversationId={conversation?.id ?? null}
             initialMessages={messages}
-            opensFullPage={profile?.role === "admin"}
+            opensFullPage={profile?.role === "admin" || profile?.role === "agent"}
           />
         </Suspense>
       </body>

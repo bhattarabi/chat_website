@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
+import type { Role } from "@/lib/types";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -310,13 +311,43 @@ export async function deletePromoSubscriber(formData: FormData) {
 export async function updateUserStatus(formData: FormData) {
   const supabase = await requireAdmin();
   const userId = text(formData, "user_id");
+  const role = text(formData, "role");
+  const nextRole: Role = role === "admin" || role === "agent" ? role : "customer";
+
   await supabase
     .from("profiles")
     .update({
       disabled: formData.get("disabled") === "on",
-      role: formData.get("admin") === "on" ? "admin" : "customer"
+      role: nextRole
     })
     .eq("id", userId);
 
   revalidatePath("/admin");
+  revalidatePath("/chat");
+}
+
+export async function updateChatAssignment(formData: FormData) {
+  const supabase = await requireAdmin();
+  const conversationId = text(formData, "conversation_id");
+  const agentId = text(formData, "assigned_admin_id");
+
+  if (agentId) {
+    const { data: agent } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", agentId)
+      .eq("role", "agent")
+      .eq("disabled", false)
+      .maybeSingle();
+
+    if (!agent) return;
+  }
+
+  await supabase
+    .from("conversations")
+    .update({ assigned_admin_id: agentId || null })
+    .eq("id", conversationId);
+
+  revalidatePath("/admin");
+  revalidatePath("/chat");
 }

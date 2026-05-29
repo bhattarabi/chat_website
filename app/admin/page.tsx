@@ -12,7 +12,13 @@ import type {
   PromoSubscriber,
   PromotionalEmail
 } from "@/lib/types";
-import { saveMainFeature, savePlatformLink, savePromotionalEmail, sendSavedPromotionalEmail } from "./actions";
+import {
+  saveMainFeature,
+  savePlatformLink,
+  savePromotionalEmail,
+  sendSavedPromotionalEmail,
+  updateChatAssignment
+} from "./actions";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -34,6 +40,7 @@ export default async function AdminPage() {
     { data: links },
     { data: users },
     { data: conversations },
+    { data: agents },
     { data: mainFeature },
     { data: promoSubscribers },
     { data: promotionalEmails }
@@ -46,9 +53,16 @@ export default async function AdminPage() {
       supabase.from("profiles").select("*").order("created_at", { ascending: false }).returns<Profile[]>(),
       supabase
         .from("conversations")
-        .select("*, profiles:customer_id(email, full_name, phone)")
+        .select("*, profiles:customer_id(email, full_name, phone), assigned_profile:assigned_admin_id(email, full_name)")
         .order("last_message_at", { ascending: false })
         .returns<Conversation[]>(),
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "agent")
+        .eq("disabled", false)
+        .order("full_name")
+        .returns<Profile[]>(),
       supabase
         .from("main_feature")
         .select("id, imageUrl:image_url, linkUrl:link_url")
@@ -252,13 +266,32 @@ export default async function AdminPage() {
           <section className="admin-section admin-tab-panel chats-panel">
             <h1>User Chats</h1>
             {(conversations ?? []).map((item) => (
-              <Link href={`/chat?conversation=${item.id}`} className="chat-link" key={item.id}>
+              <div className="chat-link" key={item.id}>
                 <MessageCircle size={16} />
                 <span>
-                  {item.profiles?.full_name || item.profiles?.email || "Customer"}
+                  <Link href={`/chat?conversation=${item.id}`}>
+                    {item.profiles?.full_name || item.profiles?.email || item.guest_name || item.guest_email || "Customer"}
+                  </Link>
                   <small>{new Date(item.last_message_at).toLocaleString()}</small>
+                  <small>Agent: {item.assigned_profile?.full_name || item.assigned_profile?.email || "Unassigned"}</small>
                 </span>
-              </Link>
+                <form action={updateChatAssignment} className="chat-assignment-form">
+                  <input type="hidden" name="conversation_id" value={item.id} />
+                  <select
+                    name="assigned_admin_id"
+                    aria-label="Assigned chat agent"
+                    defaultValue={item.assigned_admin_id ?? ""}
+                  >
+                    <option value="">Unassigned</option>
+                    {(agents ?? []).map((agent) => (
+                      <option value={agent.id} key={agent.id}>
+                        {agent.full_name || agent.email}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit">Assign</button>
+                </form>
+              </div>
             ))}
           </section>
         </div>

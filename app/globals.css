@@ -1529,6 +1529,22 @@ textarea {
   gap: 8px;
 }
 
+.chat-assignment-form {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.chat-assignment-form select {
+  min-height: 38px;
+  min-width: 160px;
+}
+
+.chat-assignment-form button {
+  min-height: 38px;
+  padding: 0 14px;
+}
+
 .chat-icon-button {
   align-items: center;
   background: #e8efff;
@@ -1986,12 +2002,21 @@ small {
   border-top: 1px solid var(--line);
   display: flex;
   gap: 10px;
+  justify-content: space-between;
   padding: 12px 0;
 }
 
 .chat-link span {
   display: grid;
   gap: 2px;
+}
+
+.chat-link > svg {
+  flex: 0 0 auto;
+}
+
+.chat-link > span {
+  flex: 1 1 auto;
 }
 
 @media (max-width: 860px) {
@@ -2060,6 +2085,30 @@ small {
 
   .admin-chat-layout {
     grid-template-columns: 1fr;
+  }
+
+  .chat-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .chat-header-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .chat-link {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .chat-link .chat-assignment-form {
+    margin-left: 26px;
+    width: calc(100% - 26px);
+  }
+
+  .chat-assignment-form select {
+    min-width: 0;
   }
 
   .chat-inbox {
