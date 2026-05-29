@@ -143,6 +143,48 @@ create trigger conversations_assign_chat_agent
 before insert on public.conversations
 for each row execute function public.assign_next_chat_agent();
 
+create or replace function public.current_customer_chat()
+returns table(conversation_id uuid)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_user_id uuid := auth.uid();
+begin
+  if current_user_id is null then
+    raise exception 'Authentication required';
+  end if;
+
+  if not exists (
+    select 1
+    from public.profiles
+    where id = current_user_id
+      and role = 'customer'
+      and disabled = false
+  ) then
+    raise exception 'Customer account required';
+  end if;
+
+  select conversations.id
+  into conversation_id
+  from public.conversations
+  where customer_id = current_user_id
+  order by created_at asc
+  limit 1;
+
+  if conversation_id is null then
+    insert into public.conversations (customer_id)
+    values (current_user_id)
+    returning id into conversation_id;
+  end if;
+
+  return next;
+end;
+$$;
+
+grant execute on function public.current_customer_chat() to authenticated;
+
 alter table public.chat_assignment_state enable row level security;
 
 drop policy if exists "Profiles are visible to self and admins" on public.profiles;

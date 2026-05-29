@@ -58,22 +58,16 @@ export default async function ChatPage({ searchParams }: Props) {
   const isChatStaff = profile.role === "admin" || profile.role === "agent";
 
   if (profile.role === "customer") {
-    const existing = await supabase
-      .from("conversations")
-      .select("*")
-      .eq("customer_id", user.id)
-      .maybeSingle<Conversation>();
-
-    if (existing.data) {
-      conversation = existing.data;
-    } else {
-      const created = await supabase
-        .from("conversations")
-        .insert({ customer_id: user.id })
-        .select("*")
-        .single<Conversation>();
-      conversation = created.data;
-    }
+    const { data: chat } = await supabase.rpc("current_customer_chat");
+    const conversationId = Array.isArray(chat) ? chat[0]?.conversation_id : chat?.conversation_id;
+    const { data: currentConversation } = conversationId
+      ? await supabase
+          .from("conversations")
+          .select("*")
+          .eq("id", conversationId)
+          .maybeSingle<Conversation>()
+      : { data: null };
+    conversation = currentConversation;
   } else if (isChatStaff) {
     const [{ data: adminConversations }, { data: latestMessages }, { data: activeAgents }] = await Promise.all([
       supabase

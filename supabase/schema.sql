@@ -354,6 +354,46 @@ create trigger conversations_assign_chat_agent
 before insert on public.conversations
 for each row execute function public.assign_next_chat_agent();
 
+create or replace function public.current_customer_chat()
+returns table(conversation_id uuid)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_user_id uuid := auth.uid();
+begin
+  if current_user_id is null then
+    raise exception 'Authentication required';
+  end if;
+
+  if not exists (
+    select 1
+    from public.profiles
+    where id = current_user_id
+      and role = 'customer'
+      and disabled = false
+  ) then
+    raise exception 'Customer account required';
+  end if;
+
+  select conversations.id
+  into conversation_id
+  from public.conversations
+  where customer_id = current_user_id
+  order by created_at asc
+  limit 1;
+
+  if conversation_id is null then
+    insert into public.conversations (customer_id)
+    values (current_user_id)
+    returning id into conversation_id;
+  end if;
+
+  return next;
+end;
+$$;
+
 create or replace function public.guest_token_hash(guest_token text)
 returns text
 language sql
@@ -614,6 +654,7 @@ with check (public.is_admin(auth.uid()));
 grant execute on function public.start_guest_chat(text, text, text) to anon, authenticated;
 grant execute on function public.guest_chat_messages(uuid, text) to anon, authenticated;
 grant execute on function public.send_guest_message(uuid, text, text) to anon, authenticated;
+grant execute on function public.current_customer_chat() to authenticated;
 
 insert into public.main_feature (id)
 values ('main');

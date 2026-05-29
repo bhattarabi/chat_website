@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Maximize2, MessageCircle, Minus } from "lucide-react";
 import { ChatRoom } from "@/components/chat-room";
 import { GuestChatRoom } from "@/components/guest-chat-room";
-import type { Message } from "@/lib/types";
+import { createClient } from "@/lib/supabase-browser";
+import type { Message, Profile } from "@/lib/types";
 
 type Props = {
   currentUserId: string | null;
@@ -21,11 +22,21 @@ export function FloatingChatWidget({
   initialMessages,
   opensFullPage = false
 }: Props) {
+  const supabase = useMemo(() => createClient(), []);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isChatPage = pathname === "/chat";
   const search = searchParams.toString();
   const [isOpen, setIsOpen] = useState(() => searchParams.get("chat") === "open");
+  const [resolvedUserId, setResolvedUserId] = useState(currentUserId);
+  const [resolvedConversationId, setResolvedConversationId] = useState(conversationId);
+  const [resolvedMessages, setResolvedMessages] = useState(initialMessages);
+  const [resolvedOpensFullPage, setResolvedOpensFullPage] = useState(opensFullPage);
+  const [chatStatus, setChatStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    currentUserId && (conversationId || opensFullPage) ? "ready" : "idle"
+  );
+  const [resolveAttempt, setResolveAttempt] = useState(0);
+  const hasReadyChatRef = useRef(Boolean(currentUserId && (conversationId || opensFullPage)));
 
   const { openedPath, closedPath } = useMemo(() => {
     const openedParams = new URLSearchParams(search);
@@ -48,6 +59,127 @@ export function FloatingChatWidget({
     setIsOpen(searchParams.get("chat") === "open");
   }, [searchParams]);
 
+  useEffect(() => {
+    hasReadyChatRef.current =
+      chatStatus === "ready" &&
+      (resolvedOpensFullPage || Boolean(resolvedUserId && resolvedConversationId));
+  }, [chatStatus, resolvedConversationId, resolvedOpensFullPage, resolvedUserId]);
+
+  useEffect(() => {
+    const hasServerChat = Boolean(currentUserId && (conversationId || opensFullPage));
+
+    if (hasServerChat || !hasReadyChatRef.current) {
+      setResolvedUserId(currentUserId);
+      setResolvedConversationId(conversationId);
+      setResolvedMessages(initialMessages);
+      setResolvedOpensFullPage(opensFullPage);
+      setChatStatus(hasServerChat ? "ready" : "idle");
+    }
+  }, [conversationId, currentUserId, initialMessages, opensFullPage]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function resolveSignedInChat() {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+
+      if (!active) return;
+
+      if (!user) {
+        setResolvedUserId(null);
+        setResolvedConversationId(null);
+        setResolvedMessages([]);
+        setResolvedOpensFullPage(false);
+        setChatStatus("idle");
+        return;
+      }
+
+      if (!hasReadyChatRef.current) {
+        setChatStatus("loading");
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle<Profile>();
+
+      if (profileError) throw profileError;
+      if (!active) return;
+
+      if (!profile || profile.disabled) {
+        setResolvedUserId(null);
+        setResolvedConversationId(null);
+        setResolvedMessages([]);
+        setResolvedOpensFullPage(false);
+        setChatStatus("idle");
+        return;
+      }
+
+      if (profile.role === "admin" || profile.role === "agent") {
+        setResolvedUserId(user.id);
+        setResolvedConversationId(null);
+        setResolvedMessages([]);
+        setResolvedOpensFullPage(true);
+        setChatStatus("ready");
+        return;
+      }
+
+      const { data: customerChat, error: chatError } = await supabase.rpc("current_customer_chat");
+
+      if (!active) return;
+      if (chatError) throw chatError;
+
+      const conversationId = Array.isArray(customerChat)
+        ? customerChat[0]?.conversation_id
+        : customerChat?.conversation_id;
+
+      if (!conversationId) throw new Error("Could not load support chat.");
+
+      const { data: messages, error: messagesError } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true })
+        .returns<Message[]>();
+
+      if (messagesError) throw messagesError;
+      if (!active) return;
+
+      setResolvedUserId(user.id);
+      setResolvedConversationId(conversationId);
+      setResolvedMessages(messages ?? []);
+      setResolvedOpensFullPage(false);
+      setChatStatus("ready");
+    }
+
+    function handleResolveError() {
+      if (!active || hasReadyChatRef.current) return;
+      setResolvedUserId(null);
+      setResolvedConversationId(null);
+      setResolvedMessages([]);
+      setResolvedOpensFullPage(false);
+      setChatStatus("error");
+    }
+
+    resolveSignedInChat().catch(handleResolveError);
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(() => {
+      window.setTimeout(() => {
+        resolveSignedInChat().catch(handleResolveError);
+      }, 0);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [resolveAttempt, supabase]);
+
   function toggleChat(open: boolean) {
     setIsOpen(open);
     window.history.replaceState(null, "", open ? openedPath : closedPath);
@@ -55,7 +187,7 @@ export function FloatingChatWidget({
 
   if (isChatPage) return null;
 
-  if (opensFullPage) {
+  if (resolvedOpensFullPage) {
     return (
       <Link className="floating-chat-button" href="/chat" aria-label="Open support chat">
         <MessageCircle aria-hidden="true" size={24} strokeWidth={2.5} />
@@ -78,11 +210,22 @@ export function FloatingChatWidget({
       </button>
 
       <aside className="floating-chat-panel" aria-label="Support chat" data-open={isOpen}>
-        {currentUserId && conversationId ? (
+        {chatStatus === "loading" ? (
+          <section className="floating-chat-auth-body">
+            <p>Loading your support chat...</p>
+          </section>
+        ) : chatStatus === "error" ? (
+          <section className="floating-chat-auth-body">
+            <p>Support chat could not load.</p>
+            <button type="button" onClick={() => setResolveAttempt((attempt) => attempt + 1)}>
+              Try again
+            </button>
+          </section>
+        ) : resolvedUserId && resolvedConversationId ? (
           <ChatRoom
-            conversationId={conversationId}
-            currentUserId={currentUserId}
-            initialMessages={initialMessages}
+            conversationId={resolvedConversationId}
+            currentUserId={resolvedUserId}
+            initialMessages={resolvedMessages}
             actions={
               <>
                 <Link className="chat-icon-button" href={fullPageHref} aria-label="Open full page chat">
