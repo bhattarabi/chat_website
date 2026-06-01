@@ -194,13 +194,7 @@ export function GuestChatRoom({ agentName, actions }: Props) {
       <div className="chat-header">
         <div className="chat-header-copy">
           <h1>Support chat</h1>
-          <p>{session ? "Messages appear instantly." : "Enter your details to start chatting."}</p>
-          {session ? (
-            <p className="chat-agent-label">
-              <span>Agent</span>
-              <strong>{resolvedAgentName || "Waiting for assignment"}</strong>
-            </p>
-          ) : null}
+          
         </div>
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>

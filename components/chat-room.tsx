@@ -156,11 +156,7 @@ export function ChatRoom({
         <div className="chat-header-copy">
           <h1>{title}</h1>
           <p>{subtitle}</p>
-          {agentName !== undefined ? (
-            <p className="chat-agent-label">
-              <strong>Agent: {agentName || "Waiting for assignment"}</strong>
-            </p>
-          ) : null}
+          
         </div>
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>
