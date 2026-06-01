@@ -153,6 +153,7 @@ export default async function ChatPage({ searchParams }: Props) {
               conversationId={conversation.id}
               currentUserId={user.id}
               initialMessages={messages ?? []}
+              showAssignmentNotices
               actions={
                 <>
                   {profile.role === "admin" ? (

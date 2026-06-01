@@ -12,6 +12,7 @@ type Props = {
   currentUserId: string;
   initialMessages: Message[];
   agentName?: string | null;
+  showAssignmentNotices?: boolean;
   title?: string;
   subtitle?: string;
   actions?: ReactNode;
@@ -51,6 +52,7 @@ export function ChatRoom({
   currentUserId,
   initialMessages,
   agentName,
+  showAssignmentNotices = false,
   title = "Support chat",
   subtitle = "",
   actions
@@ -62,6 +64,9 @@ export function ChatRoom({
   const [sending, setSending] = useState(false);
   const [mounted, setMounted] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const visibleMessages = showAssignmentNotices
+    ? messages
+    : messages.filter((message) => message.sender_type !== "system");
 
   useEffect(() => {
     setMounted(true);
@@ -160,12 +165,12 @@ export function ChatRoom({
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>
       <div className="messages" aria-live="polite">
-        {messages.map((message, index) => {
+        {visibleMessages.map((message, index) => {
           const mine = message.sender_id === currentUserId;
           const system = message.sender_type === "system";
           const timeZone = mounted ? undefined : "UTC";
           const messageDateKey = getDateKey(message.created_at, timeZone);
-          const previousMessage = messages[index - 1];
+          const previousMessage = visibleMessages[index - 1];
           const previousDateKey = previousMessage ? getDateKey(previousMessage.created_at, timeZone) : null;
           const showDateSeparator = messageDateKey !== previousDateKey;
 

@@ -101,6 +101,7 @@ as $$
     on conversations.id = messages.conversation_id
   where messages.conversation_id = chat_conversation_id
     and conversations.guest_token_hash = public.guest_token_hash(guest_token)
+    and messages.sender_type <> 'system'
   order by messages.created_at asc;
 $$;
 

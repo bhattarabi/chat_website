@@ -37,6 +37,7 @@ export function GuestChatRoom({ agentName, actions }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "sending">("idle");
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
+  const visibleMessages = messages.filter((message) => message.sender_type !== "system");
 
   async function loadMessages(nextSession: GuestSession) {
     const { data, error: fetchError } = await supabase.rpc("guest_chat_messages", {
@@ -207,21 +208,14 @@ export function GuestChatRoom({ agentName, actions }: Props) {
       {session ? (
         <>
           <div className="messages" aria-live="polite">
-            {messages.map((message) =>
-              message.sender_type === "system" ? (
-                <p className="chat-assignment-notice" key={message.id}>
-                  <span>{message.body}</span>
-                  <LocalTime value={message.created_at} />
-                </p>
-              ) : (
-                <article
-                  className={message.sender_type === "guest" ? "message mine" : "message"}
-                  key={message.id}
-                >
-                  {message.body ? <p>{message.body}</p> : null}
-                  <LocalTime value={message.created_at} />
-                </article>
-              )
+            {visibleMessages.map((message) =>
+              <article
+                className={message.sender_type === "guest" ? "message mine" : "message"}
+                key={message.id}
+              >
+                {message.body ? <p>{message.body}</p> : null}
+                <LocalTime value={message.created_at} />
+              </article>
             )}
             <div ref={endRef} />
           </div>

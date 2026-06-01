@@ -509,6 +509,7 @@ as $$
     on conversations.id = messages.conversation_id
   where messages.conversation_id = chat_conversation_id
     and conversations.guest_token_hash = public.guest_token_hash(guest_token)
+    and messages.sender_type <> 'system'
   order by messages.created_at asc;
 $$;
 
@@ -670,7 +671,14 @@ with check (public.is_admin(auth.uid()));
 create policy "Participants read messages"
 on public.messages for select
 to authenticated
-using (public.user_can_access_conversation(conversation_id, auth.uid()));
+using (
+  public.user_can_access_conversation(conversation_id, auth.uid())
+  and (
+    sender_type <> 'system'
+    or public.is_admin(auth.uid())
+    or public.is_chat_agent(auth.uid())
+  )
+);
 
 create policy "Participants send messages"
 on public.messages for insert
