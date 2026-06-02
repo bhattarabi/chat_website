@@ -173,6 +173,12 @@ export default async function ChatPage({ searchParams }: Props) {
                       </select>
                       <button type="submit">Assign</button>
                     </form>
+                  ) : conversation.assigned_admin_id === user.id ? (
+                    <form action={updateChatAssignment} className="chat-assignment-form">
+                      <input type="hidden" name="conversation_id" value={conversation.id} />
+                      <input type="hidden" name="assigned_admin_id" value="" />
+                      <button type="submit">Unassign</button>
+                    </form>
                   ) : null}
                   <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
                     <Minimize2 aria-hidden="true" size={18} />

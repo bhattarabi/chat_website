@@ -123,6 +123,34 @@ export function AdminChatInbox({
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversations"
+        },
+        async (payload) => {
+          const conversationId = (payload.new as ConversationPreview).id;
+          const { data } = await supabase
+            .from("conversations")
+            .select("*, profiles:customer_id(email, full_name, phone), assigned_profile:assigned_admin_id(email, full_name)")
+            .eq("id", conversationId)
+            .maybeSingle<ConversationPreview>();
+
+          if (!data) return;
+
+          setItems((current) => {
+            const updated = current.map((conversation) =>
+              conversation.id === conversationId
+                ? { ...conversation, ...data }
+                : conversation
+            );
+            itemsRef.current = updated;
+            return updated;
+          });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -142,7 +170,7 @@ export function AdminChatInbox({
   return (
     <aside className="chat-inbox" aria-label="Customer chat inbox">
       <div className="chat-inbox-header">
-        <h2>{isAdmin ? "Customer chats" : "Assigned chats"}</h2>
+        <h2>{isAdmin ? "Customer chats" : "Available chats"}</h2>
         <span>{items.length}</span>
       </div>
       <div className="chat-inbox-list">
@@ -178,7 +206,7 @@ export function AdminChatInbox({
                     {latestFromAdmin ? "You: " : ""}
                     {previewText(conversation)}
                   </small>
-                  {isAdmin ? <small>Agent: {assignedAgentName(conversation)}</small> : null}
+                  <small>Agent: {assignedAgentName(conversation)}</small>
                 </span>
                 <LocalTime value={conversation.last_message_at} />
               </Link>

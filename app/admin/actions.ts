@@ -23,6 +23,27 @@ async function requireAdmin() {
   return supabase;
 }
 
+async function requireChatStaff() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/auth");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, disabled")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.disabled || (profile.role !== "admin" && profile.role !== "agent")) {
+    redirect("/dashboard");
+  }
+
+  return { profile, supabase, user };
+}
+
 function text(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
@@ -327,9 +348,22 @@ export async function updateUserStatus(formData: FormData) {
 }
 
 export async function updateChatAssignment(formData: FormData) {
-  const supabase = await requireAdmin();
+  const { profile, supabase, user } = await requireChatStaff();
   const conversationId = text(formData, "conversation_id");
   const agentId = text(formData, "assigned_admin_id");
+
+  if (profile.role === "agent") {
+    if (agentId) return;
+
+    await supabase
+      .from("conversations")
+      .update({ assigned_admin_id: null })
+      .eq("id", conversationId)
+      .eq("assigned_admin_id", user.id);
+
+    revalidatePath("/chat");
+    return;
+  }
 
   if (agentId) {
     const { data: agent } = await supabase

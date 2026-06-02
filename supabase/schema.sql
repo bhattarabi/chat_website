@@ -49,13 +49,6 @@ create table public.conversations (
   )
 );
 
-create table public.chat_assignment_state (
-  id text primary key default 'round_robin',
-  last_agent_id uuid references public.profiles(id) on delete set null,
-  updated_at timestamptz not null default now(),
-  constraint chat_assignment_state_singleton check (id = 'round_robin')
-);
-
 create table public.messages (
   id uuid primary key default gen_random_uuid(),
   conversation_id uuid not null references public.conversations(id) on delete cascade,
@@ -155,10 +148,6 @@ $$;
 
 create trigger profiles_touch_updated_at
 before update on public.profiles
-for each row execute function public.touch_updated_at();
-
-create trigger chat_assignment_state_touch_updated_at
-before update on public.chat_assignment_state
 for each row execute function public.touch_updated_at();
 
 create trigger platform_links_touch_updated_at
@@ -302,7 +291,7 @@ as $$
       and exists (
         select 1
         from public.conversations
-        where assigned_admin_id = user_id
+        where (assigned_admin_id is null or assigned_admin_id = user_id)
           and (customer_id = profile_id or assigned_admin_id = profile_id)
       )
     );
@@ -322,78 +311,34 @@ as $$
       and (
         customer_id = user_id
         or (
-          assigned_admin_id = user_id
+          (assigned_admin_id is null or assigned_admin_id = user_id)
           and public.is_chat_agent(user_id)
         )
       )
   ) or public.is_admin(user_id);
 $$;
 
-create or replace function public.assign_next_chat_agent()
+create or replace function public.claim_unassigned_chat_on_agent_reply()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
-declare
-  next_agent_id uuid;
 begin
-  if new.assigned_admin_id is not null then
-    return new;
-  end if;
-
-  insert into public.chat_assignment_state (id)
-  values ('round_robin')
-  on conflict (id) do nothing;
-
-  perform 1
-  from public.chat_assignment_state
-  where id = 'round_robin'
-  for update;
-
-  with active_agents as (
-    select
-      profiles.id,
-      row_number() over (order by profiles.created_at, profiles.id) as position
-    from public.profiles
-    where profiles.role = 'agent'
-      and profiles.disabled = false
-  ),
-  last_position as (
-    select coalesce(
-      (
-        select active_agents.position
-        from active_agents
-        join public.chat_assignment_state
-          on chat_assignment_state.last_agent_id = active_agents.id
-        where chat_assignment_state.id = 'round_robin'
-      ),
-      0
-    ) as position
-  )
-  select active_agents.id
-  into next_agent_id
-  from active_agents, last_position
-  order by
-    case when active_agents.position > last_position.position then 0 else 1 end,
-    active_agents.position
-  limit 1;
-
-  if next_agent_id is not null then
-    new.assigned_admin_id = next_agent_id;
-
-    update public.chat_assignment_state
-    set last_agent_id = next_agent_id
-    where id = 'round_robin';
+  if new.sender_type = 'user' and public.is_chat_agent(new.sender_id) then
+    update public.conversations
+    set assigned_admin_id = new.sender_id
+    where id = new.conversation_id
+      and assigned_admin_id is null;
   end if;
 
   return new;
 end;
 $$;
 
-create trigger conversations_assign_chat_agent
-before insert on public.conversations
-for each row execute function public.assign_next_chat_agent();
+create trigger messages_claim_unassigned_chat_on_agent_reply
+before insert on public.messages
+for each row execute function public.claim_unassigned_chat_on_agent_reply();
 
 create or replace function public.current_customer_chat()
 returns table(
@@ -614,7 +559,6 @@ end;
 $$;
 
 alter table public.profiles enable row level security;
-alter table public.chat_assignment_state enable row level security;
 alter table public.platform_links enable row level security;
 alter table public.conversations enable row level security;
 alter table public.messages enable row level security;
@@ -667,6 +611,18 @@ on public.conversations for update
 to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
+
+create policy "Agents release their conversations"
+on public.conversations for update
+to authenticated
+using (
+  assigned_admin_id = auth.uid()
+  and public.is_chat_agent(auth.uid())
+)
+with check (
+  assigned_admin_id is null
+  and public.is_chat_agent(auth.uid())
+);
 
 create policy "Participants read messages"
 on public.messages for select
@@ -734,12 +690,6 @@ to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
 
-create policy "Admins manage chat assignment state"
-on public.chat_assignment_state for all
-to authenticated
-using (public.is_admin(auth.uid()))
-with check (public.is_admin(auth.uid()));
-
 grant execute on function public.start_guest_chat(text, text, text) to anon, authenticated;
 grant execute on function public.guest_chat_messages(uuid, text) to anon, authenticated;
 grant execute on function public.guest_chat_details(uuid, text) to anon, authenticated;
@@ -748,9 +698,6 @@ grant execute on function public.current_customer_chat() to authenticated;
 
 insert into public.main_feature (id)
 values ('main');
-
-insert into public.chat_assignment_state (id)
-values ('round_robin');
 
 insert into public.platform_links (title, description, url, image_url, is_featured, button_label, sort_order)
 values
