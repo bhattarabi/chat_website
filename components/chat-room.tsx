@@ -15,6 +15,7 @@ type Props = {
   showAssignmentNotices?: boolean;
   title?: string;
   subtitle?: string;
+  leadingActions?: ReactNode;
   actions?: ReactNode;
 };
 
@@ -55,6 +56,7 @@ export function ChatRoom({
   showAssignmentNotices = false,
   title = "Support chat",
   subtitle = "",
+  leadingActions,
   actions
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
@@ -165,6 +167,7 @@ export function ChatRoom({
   return (
     <section className="chat-shell">
       <div className="chat-header">
+        {leadingActions ? <div className="chat-header-leading-actions">{leadingActions}</div> : null}
         <div className="chat-header-copy">
           <span className="chat-header-icon" aria-hidden="true">
             <MessageCircle size={20} />

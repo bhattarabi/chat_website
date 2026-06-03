@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Menu, Minimize2 } from "lucide-react";
+import { ArrowLeft, Minimize2 } from "lucide-react";
 import { updateChatAssignment } from "@/app/admin/actions";
 import { StaffAppHeader } from "@/components/staff-app-header";
 import { createClient } from "@/lib/supabase-server";
@@ -138,11 +138,13 @@ export default async function ChatPage({ searchParams }: Props) {
                 currentUserId={user.id}
                 initialMessages={messages ?? []}
                 showAssignmentNotices
+                leadingActions={
+                  <Link className="chat-icon-button mobile-chat-list" href="/chat" aria-label="Back to chat list">
+                    <ArrowLeft aria-hidden="true" size={18} />
+                  </Link>
+                }
                 actions={
                   <>
-                    <Link className="chat-icon-button mobile-chat-list" href="/chat" aria-label="Show chat list">
-                      <Menu aria-hidden="true" size={18} />
-                    </Link>
                     {profile.role === "admin" ? (
                       <form action={updateChatAssignment} className="chat-assignment-form">
                         <input type="hidden" name="conversation_id" value={conversation.id} />

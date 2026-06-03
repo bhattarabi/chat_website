@@ -1672,6 +1672,13 @@ textarea {
   gap: 8px;
 }
 
+.chat-header-leading-actions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
 .chat-assignment-form {
   align-items: center;
   display: inline-flex;
@@ -2383,25 +2390,47 @@ small {
   }
 
   .chat-header {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
   }
 
   .chat-header-actions {
-    flex-wrap: wrap;
-    width: 100%;
+    flex-wrap: nowrap;
+    min-width: 0;
   }
 
   .chat-header-actions .mobile-chat-list {
-    margin-right: auto;
+    margin-right: 0;
+  }
+
+  .chat-header-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .chat-header-copy > div {
+    min-width: 0;
+  }
+
+  .chat-header h1,
+  .chat-header p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-header p {
+    display: none;
   }
 
   .chat-assignment-form {
     max-width: 100%;
+    min-width: 0;
   }
 
   .chat-assignment-form select {
-    max-width: 190px;
+    max-width: 150px;
   }
 
   .chat-link {
@@ -2808,21 +2837,29 @@ small {
   }
 
   .chat-header-actions .chat-icon-button {
-    height: 42px;
-    width: 42px;
+    height: 38px;
+    width: 38px;
   }
 
   .chat-assignment-form {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
+    gap: 6px;
   }
 
   .chat-assignment-form select {
-    flex: 1 1 auto;
-    max-width: none;
+    flex: 0 1 auto;
+    max-width: clamp(86px, 25vw, 126px);
+    min-height: 36px;
   }
 
   .chat-assignment-form button {
     flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0 9px;
+  }
+
+  .staff-chat-detail .chat-header-icon {
+    display: none;
   }
 
   .chat-inbox-header {
