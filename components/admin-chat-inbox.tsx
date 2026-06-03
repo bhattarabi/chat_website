@@ -12,7 +12,16 @@ type Props = {
   selectedConversationId: string | null;
   currentUserId: string;
   isAdmin: boolean;
+  initialAssignmentFilter: AssignmentFilter;
 };
+
+export type AssignmentFilter = "all" | "assigned" | "unassigned";
+
+const assignmentFilters: { value: AssignmentFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "assigned", label: "Assigned" },
+  { value: "unassigned", label: "Unassigned" }
+];
 
 function customerName(conversation: ConversationPreview) {
   return (
@@ -39,17 +48,63 @@ export function AdminChatInbox({
   conversations,
   selectedConversationId,
   currentUserId,
-  isAdmin
+  isAdmin,
+  initialAssignmentFilter
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [items, setItems] = useState(conversations);
   const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
+  const [assignmentFilter, setAssignmentFilter] = useState<AssignmentFilter>(initialAssignmentFilter);
   const itemsRef = useRef(conversations);
+
+  const filteredItems = useMemo(() => {
+    if (assignmentFilter === "assigned") {
+      return items.filter((conversation) =>
+        isAdmin
+          ? Boolean(conversation.assigned_admin_id)
+          : conversation.assigned_admin_id === currentUserId
+      );
+    }
+
+    if (assignmentFilter === "unassigned") {
+      return items.filter((conversation) => !conversation.assigned_admin_id);
+    }
+
+    return items;
+  }, [assignmentFilter, currentUserId, isAdmin, items]);
+
+  const emptyMessage =
+    assignmentFilter === "assigned"
+      ? "No assigned customer chats match this filter."
+      : assignmentFilter === "unassigned"
+        ? "No unassigned customer chats match this filter."
+        : "New customer messages will appear here.";
+
+  function filterHref(filter: AssignmentFilter) {
+    return filter === "all" ? "/chat" : `/chat?assignment=${filter}`;
+  }
+
+  function conversationHref(conversationId: string) {
+    const params = new URLSearchParams();
+    params.set("conversation", conversationId);
+
+    if (assignmentFilter === "all") {
+      params.delete("assignment");
+    } else {
+      params.set("assignment", assignmentFilter);
+    }
+
+    return `/chat?${params.toString()}`;
+  }
 
   useEffect(() => {
     setItems(conversations);
     itemsRef.current = conversations;
   }, [conversations]);
+
+  useEffect(() => {
+    setAssignmentFilter(initialAssignmentFilter);
+  }, [initialAssignmentFilter]);
 
   useEffect(() => {
     const channel = supabase
@@ -170,12 +225,26 @@ export function AdminChatInbox({
   return (
     <aside className="chat-inbox" aria-label="Customer chat inbox">
       <div className="chat-inbox-header">
-        <h2>{isAdmin ? "Customer chats" : "Available chats"}</h2>
-        <span>{items.length}</span>
+        <div>
+          <h2>{isAdmin ? "Customer chats" : "Available chats"}</h2>
+          <div className="chat-inbox-filter" aria-label="Filter chats by assignment">
+            {assignmentFilters.map((filter) => (
+              <Link
+                aria-current={assignmentFilter === filter.value ? "page" : undefined}
+                className={assignmentFilter === filter.value ? "active" : ""}
+                href={filterHref(filter.value)}
+                key={filter.value}
+              >
+                {filter.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <span>{filteredItems.length}</span>
       </div>
       <div className="chat-inbox-list">
-        {items.length ? (
-          items.map((conversation) => {
+        {filteredItems.length ? (
+          filteredItems.map((conversation) => {
             const selected = conversation.id === selectedConversationId;
             const unread = unreadIds.has(conversation.id);
             const latestFromAdmin =
@@ -190,7 +259,7 @@ export function AdminChatInbox({
                 ]
                   .filter(Boolean)
                   .join(" ")}
-                href={`/chat?conversation=${conversation.id}`}
+                href={conversationHref(conversation.id)}
                 key={conversation.id}
               >
                 <span className="inbox-icon">
@@ -219,7 +288,7 @@ export function AdminChatInbox({
             );
           })
         ) : (
-          <p className="inbox-empty">New customer messages will appear here.</p>
+          <p className="inbox-empty">{emptyMessage}</p>
         )}
       </div>
     </aside>

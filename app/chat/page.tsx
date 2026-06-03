@@ -5,12 +5,41 @@ import { updateChatAssignment } from "@/app/admin/actions";
 import { StaffAppHeader } from "@/components/staff-app-header";
 import { createClient } from "@/lib/supabase-server";
 import type { Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
-import { AdminChatInbox } from "@/components/admin-chat-inbox";
+import { AdminChatInbox, type AssignmentFilter } from "@/components/admin-chat-inbox";
 import { ChatRoom } from "@/components/chat-room";
 
 type Props = {
-  searchParams: Promise<{ conversation?: string; returnTo?: string }>;
+  searchParams: Promise<{ assignment?: string; conversation?: string; returnTo?: string }>;
 };
+
+function assignmentFilter(value: string | undefined): AssignmentFilter {
+  return value === "assigned" || value === "unassigned" ? value : "all";
+}
+
+function chatListHref(filter: AssignmentFilter) {
+  return filter === "all" ? "/chat" : `/chat?assignment=${filter}`;
+}
+
+function filterConversations(
+  conversations: ConversationPreview[],
+  filter: AssignmentFilter,
+  currentUserId: string,
+  isAdmin: boolean
+) {
+  if (filter === "assigned") {
+    return conversations.filter((conversation) =>
+      isAdmin
+        ? Boolean(conversation.assigned_admin_id)
+        : conversation.assigned_admin_id === currentUserId
+    );
+  }
+
+  if (filter === "unassigned") {
+    return conversations.filter((conversation) => !conversation.assigned_admin_id);
+  }
+
+  return conversations;
+}
 
 function conversationTitle(conversation: ConversationPreview | Conversation) {
   if ("profiles" in conversation && conversation.profiles) {
@@ -35,7 +64,8 @@ function conversationSubtitle(conversation: ConversationPreview | Conversation) 
 }
 
 export default async function ChatPage({ searchParams }: Props) {
-  const { conversation: selectedConversationId, returnTo } = await searchParams;
+  const { assignment, conversation: selectedConversationId, returnTo } = await searchParams;
+  const selectedAssignmentFilter = assignmentFilter(assignment);
   const popupHref = returnTo?.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/?chat=open";
   const supabase = await createClient();
   const {
@@ -105,9 +135,16 @@ export default async function ChatPage({ searchParams }: Props) {
       latest_message: latestByConversation.get(item.id) ?? null
     }));
 
+    const filteredConversations = filterConversations(
+      conversations,
+      selectedAssignmentFilter,
+      user.id,
+      profile.role === "admin"
+    );
+
     conversation =
-      conversations.find((item) => item.id === selectedConversationId) ??
-      conversations[0] ??
+      filteredConversations.find((item) => item.id === selectedConversationId) ??
+      filteredConversations[0] ??
       null;
   }
 
@@ -130,6 +167,7 @@ export default async function ChatPage({ searchParams }: Props) {
             selectedConversationId={conversation?.id ?? null}
             currentUserId={user.id}
             isAdmin={profile.role === "admin"}
+            initialAssignmentFilter={selectedAssignmentFilter}
           />
           <div className="staff-chat-detail">
             {conversation ? (
@@ -139,7 +177,7 @@ export default async function ChatPage({ searchParams }: Props) {
                 initialMessages={messages ?? []}
                 showAssignmentNotices
                 leadingActions={
-                  <Link className="chat-icon-button mobile-chat-list" href="/chat" aria-label="Back to chat list">
+                  <Link className="chat-icon-button mobile-chat-list" href={chatListHref(selectedAssignmentFilter)} aria-label="Back to chat list">
                     <ArrowLeft aria-hidden="true" size={18} />
                   </Link>
                 }
