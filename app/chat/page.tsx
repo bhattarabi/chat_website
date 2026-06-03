@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Menu, Minimize2 } from "lucide-react";
 import { updateChatAssignment } from "@/app/admin/actions";
-import { signOut } from "@/app/auth/actions";
+import { StaffAppHeader } from "@/components/staff-app-header";
 import { createClient } from "@/lib/supabase-server";
 import type { Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
 import { AdminChatInbox } from "@/components/admin-chat-inbox";
@@ -122,24 +122,7 @@ export default async function ChatPage({ searchParams }: Props) {
 
   return (
     <main className="app-shell chat-page">
-      <header className="app-header">
-        <Link href="/" className="brand">
-          Game Links Galore
-        </Link>
-        <nav>
-          {profile.role === "admin" ? (
-            <Link className="button" href="/admin">
-              Admin
-            </Link>
-          ) : null}
-          <Link className="button" href="/dashboard">
-            Account
-          </Link>
-          <form action={signOut}>
-            <button type="submit">Logout</button>
-          </form>
-        </nav>
-      </header>
+      <StaffAppHeader showAdmin={profile.role === "admin"} />
       {isChatStaff ? (
         <section className={`admin-chat-layout${selectedConversationId ? " show-chat-detail" : ""}`}>
           <AdminChatInbox

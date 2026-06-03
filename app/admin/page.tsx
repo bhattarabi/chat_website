@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { MessageCircle } from "lucide-react";
-import { signOut } from "@/app/auth/actions";
+import { Menu, MessageCircle } from "lucide-react";
 import { PlatformLinksAdminTable, PromoSubscribersAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
+import { StaffAppHeader } from "@/components/staff-app-header";
 import { createClient } from "@/lib/supabase-server";
 import type {
   Conversation,
@@ -86,22 +86,7 @@ export default async function AdminPage() {
 
   return (
     <main className="app-shell">
-      <header className="app-header">
-        <Link href="/" className="brand">
-          Game Links Galore
-        </Link>
-        <nav>
-          <Link className="button" href="/admin">
-            Admin
-          </Link>
-          <Link className="button" href="/dashboard">
-            Account
-          </Link>
-          <form action={signOut}>
-            <button type="submit">Logout</button>
-          </form>
-        </nav>
-      </header>
+      <StaffAppHeader showAdmin />
 
       <section className="admin-tabs">
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
@@ -111,7 +96,7 @@ export default async function AdminPage() {
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
         <input id="admin-tab-chats" name="admin-tabs" type="radio" />
 
-        <div className="admin-tab-list" role="tablist" aria-label="Admin sections">
+        <div className="admin-tab-list admin-desktop-tab-list" role="tablist" aria-label="Admin sections">
           <label htmlFor="admin-tab-links" role="tab">
             Platform Links
           </label>
@@ -131,6 +116,31 @@ export default async function AdminPage() {
             User Chats
           </label>
         </div>
+        <details className="admin-mobile-tab-menu">
+          <summary aria-label="Open admin sections" title="Admin sections">
+            <Menu aria-hidden="true" size={22} />
+          </summary>
+          <div className="admin-tab-list" role="tablist" aria-label="Admin sections">
+            <label htmlFor="admin-tab-links" role="tab">
+              Platform Links
+            </label>
+            <label htmlFor="admin-tab-homepage" role="tab">
+              Homepage
+            </label>
+            <label htmlFor="admin-tab-promos" role="tab">
+              Promo Emails
+            </label>
+            <label htmlFor="admin-tab-subscribers" role="tab">
+              Subscribers
+            </label>
+            <label htmlFor="admin-tab-users" role="tab">
+              Users
+            </label>
+            <label htmlFor="admin-tab-chats" role="tab">
+              User Chats
+            </label>
+          </div>
+        </details>
 
         <div className="admin-tab-panels">
           <section className="admin-section admin-tab-panel links-panel">
