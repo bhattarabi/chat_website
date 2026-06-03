@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Send } from "lucide-react";
+import { MessageCircle, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { LocalTime } from "@/components/local-time";
 import type { ChatAssignmentInfo, Message } from "@/lib/types";
@@ -193,8 +193,12 @@ export function GuestChatRoom({ agentName, actions }: Props) {
     <section className="chat-shell guest-chat">
       <div className="chat-header">
         <div className="chat-header-copy">
-          <h1>Support chat</h1>
-          
+          <span className="chat-header-icon" aria-hidden="true">
+            <MessageCircle size={20} />
+          </span>
+          <div>
+            <h1>Support chat</h1>
+          </div>
         </div>
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>

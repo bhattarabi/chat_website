@@ -2,7 +2,7 @@
 
 import { Fragment, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ImagePlus, Send } from "lucide-react";
+import { ImagePlus, MessageCircle, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { LocalTime } from "@/components/local-time";
 import type { Message } from "@/lib/types";
@@ -63,6 +63,7 @@ export function ChatRoom({
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [freshMessageIds, setFreshMessageIds] = useState<Set<string>>(new Set());
   const endRef = useRef<HTMLDivElement | null>(null);
   const visibleMessages = showAssignmentNotices
     ? messages
@@ -88,10 +89,21 @@ export function ChatRoom({
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
+          const next = payload.new as Message;
           setMessages((current) => {
-            const next = payload.new as Message;
             return current.some((message) => message.id === next.id) ? current : [...current, next];
           });
+
+          if (next.sender_id !== currentUserId) {
+            setFreshMessageIds((current) => new Set(current).add(next.id));
+            window.setTimeout(() => {
+              setFreshMessageIds((current) => {
+                const updated = new Set(current);
+                updated.delete(next.id);
+                return updated;
+              });
+            }, 1800);
+          }
         }
       )
       .subscribe();
@@ -99,7 +111,7 @@ export function ChatRoom({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, supabase]);
+  }, [conversationId, currentUserId, supabase]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -154,9 +166,13 @@ export function ChatRoom({
     <section className="chat-shell">
       <div className="chat-header">
         <div className="chat-header-copy">
-          <h1>{title}</h1>
-          <p>{subtitle}</p>
-          
+          <span className="chat-header-icon" aria-hidden="true">
+            <MessageCircle size={20} />
+          </span>
+          <div>
+            <h1>{title}</h1>
+            <p>{subtitle}</p>
+          </div>
         </div>
         {actions ? <div className="chat-header-actions">{actions}</div> : null}
       </div>
@@ -183,7 +199,7 @@ export function ChatRoom({
                   <span>{message.body}</span>
                 </p>
               ) : (
-                <article className={mine ? "message mine" : "message"}>
+                <article className={`message${mine ? " mine" : ""}${freshMessageIds.has(message.id) ? " incoming-new" : ""}`}>
                   {message.body ? <p>{message.body}</p> : null}
                   {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
                   <LocalTime value={message.created_at} />

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Image, MessageCircle } from "lucide-react";
+import { ChevronRight, Image, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { LocalTime } from "@/components/local-time";
 import type { ConversationPreview, Message } from "@/lib/types";
@@ -206,9 +206,15 @@ export function AdminChatInbox({
                     {latestFromAdmin ? "You: " : ""}
                     {previewText(conversation)}
                   </small>
-                  <small>Agent: {assignedAgentName(conversation)}</small>
+                  <small className={conversation.assigned_admin_id ? "inbox-assignment" : "inbox-assignment unassigned"}>
+                    {assignedAgentName(conversation)}
+                  </small>
                 </span>
-                <LocalTime value={conversation.last_message_at} />
+                <span className="inbox-trailing">
+                  <LocalTime value={conversation.last_message_at} />
+                  {unread ? <span className="inbox-unread-dot" aria-label="Unread message" /> : null}
+                  <ChevronRight aria-hidden="true" size={16} />
+                </span>
               </Link>
             );
           })

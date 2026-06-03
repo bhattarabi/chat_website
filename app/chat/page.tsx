@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Minimize2 } from "lucide-react";
+import { Menu, Minimize2 } from "lucide-react";
 import { updateChatAssignment } from "@/app/admin/actions";
 import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase-server";
@@ -141,59 +141,64 @@ export default async function ChatPage({ searchParams }: Props) {
         </nav>
       </header>
       {isChatStaff ? (
-        <section className="admin-chat-layout">
+        <section className={`admin-chat-layout${selectedConversationId ? " show-chat-detail" : ""}`}>
           <AdminChatInbox
             conversations={conversations}
             selectedConversationId={conversation?.id ?? null}
             currentUserId={user.id}
             isAdmin={profile.role === "admin"}
           />
-          {conversation ? (
-            <ChatRoom
-              conversationId={conversation.id}
-              currentUserId={user.id}
-              initialMessages={messages ?? []}
-              showAssignmentNotices
-              actions={
-                <>
-                  {profile.role === "admin" ? (
-                    <form action={updateChatAssignment} className="chat-assignment-form">
-                      <input type="hidden" name="conversation_id" value={conversation.id} />
-                      <select
-                        name="assigned_admin_id"
-                        aria-label="Assigned chat agent"
-                        defaultValue={conversation.assigned_admin_id ?? ""}
-                      >
-                        <option value="">Unassigned</option>
-                        {agents.map((agent) => (
-                          <option value={agent.id} key={agent.id}>
-                            {agent.full_name || agent.email}
-                          </option>
-                        ))}
-                      </select>
-                      <button type="submit">Assign</button>
-                    </form>
-                  ) : conversation.assigned_admin_id === user.id ? (
-                    <form action={updateChatAssignment} className="chat-assignment-form">
-                      <input type="hidden" name="conversation_id" value={conversation.id} />
-                      <input type="hidden" name="assigned_admin_id" value="" />
-                      <button type="submit">Unassign</button>
-                    </form>
-                  ) : null}
-                  <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
-                    <Minimize2 aria-hidden="true" size={18} />
-                  </Link>
-                </>
-              }
-              title={conversationTitle(conversation)}
-              subtitle={conversationSubtitle(conversation)}
-            />
-          ) : (
-            <section className="empty-state">
-              <h1>No customer chats yet</h1>
-              <p>New customer messages will appear here as conversations are created.</p>
-            </section>
-          )}
+          <div className="staff-chat-detail">
+            {conversation ? (
+              <ChatRoom
+                conversationId={conversation.id}
+                currentUserId={user.id}
+                initialMessages={messages ?? []}
+                showAssignmentNotices
+                actions={
+                  <>
+                    <Link className="chat-icon-button mobile-chat-list" href="/chat" aria-label="Show chat list">
+                      <Menu aria-hidden="true" size={18} />
+                    </Link>
+                    {profile.role === "admin" ? (
+                      <form action={updateChatAssignment} className="chat-assignment-form">
+                        <input type="hidden" name="conversation_id" value={conversation.id} />
+                        <select
+                          name="assigned_admin_id"
+                          aria-label="Assigned chat agent"
+                          defaultValue={conversation.assigned_admin_id ?? ""}
+                        >
+                          <option value="">Unassigned</option>
+                          {agents.map((agent) => (
+                            <option value={agent.id} key={agent.id}>
+                              {agent.full_name || agent.email}
+                            </option>
+                          ))}
+                        </select>
+                        <button type="submit">Assign</button>
+                      </form>
+                    ) : conversation.assigned_admin_id === user.id ? (
+                      <form action={updateChatAssignment} className="chat-assignment-form">
+                        <input type="hidden" name="conversation_id" value={conversation.id} />
+                        <input type="hidden" name="assigned_admin_id" value="" />
+                        <button type="submit">Unassign</button>
+                      </form>
+                    ) : null}
+                    <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
+                      <Minimize2 aria-hidden="true" size={18} />
+                    </Link>
+                  </>
+                }
+                title={conversationTitle(conversation)}
+                subtitle={conversationSubtitle(conversation)}
+              />
+            ) : (
+              <section className="empty-state">
+                <h1>No customer chats yet</h1>
+                <p>New customer messages will appear here as conversations are created.</p>
+              </section>
+            )}
+          </div>
         </section>
       ) : conversation ? (
         <ChatRoom
