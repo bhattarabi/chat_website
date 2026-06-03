@@ -68,6 +68,14 @@ create table public.messages (
   )
 );
 
+create table public.chat_read_states (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  conversation_id uuid not null references public.conversations(id) on delete cascade,
+  last_read_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, conversation_id)
+);
+
 create table public.announcements (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -128,6 +136,7 @@ create index conversations_customer_idx on public.conversations(customer_id);
 create unique index conversations_guest_token_hash_idx
 on public.conversations(guest_token_hash);
 create index messages_conversation_created_idx on public.messages(conversation_id, created_at);
+create index chat_read_states_conversation_idx on public.chat_read_states(conversation_id);
 create index announcements_status_created_idx on public.announcements(status, created_at desc);
 create index promo_subscribers_active_idx on public.promo_subscribers(unsubscribed_at, subscribed_at desc);
 create index promotional_emails_created_idx on public.promotional_emails(created_at desc);
@@ -168,6 +177,10 @@ for each row execute function public.touch_updated_at();
 
 create trigger main_feature_touch_updated_at
 before update on public.main_feature
+for each row execute function public.touch_updated_at();
+
+create trigger chat_read_states_touch_updated_at
+before update on public.chat_read_states
 for each row execute function public.touch_updated_at();
 
 create or replace function public.touch_conversation_last_message()
@@ -615,6 +628,7 @@ alter table public.profiles enable row level security;
 alter table public.platform_links enable row level security;
 alter table public.conversations enable row level security;
 alter table public.messages enable row level security;
+alter table public.chat_read_states enable row level security;
 alter table public.announcements enable row level security;
 alter table public.promo_subscribers enable row level security;
 alter table public.promotional_emails enable row level security;
@@ -695,6 +709,18 @@ to authenticated
 with check (
   sender_id = auth.uid()
   and sender_type = 'user'
+  and public.user_can_access_conversation(conversation_id, auth.uid())
+);
+
+create policy "Users manage their chat read states"
+on public.chat_read_states for all
+to authenticated
+using (
+  user_id = auth.uid()
+  and public.user_can_access_conversation(conversation_id, auth.uid())
+)
+with check (
+  user_id = auth.uid()
   and public.user_can_access_conversation(conversation_id, auth.uid())
 );
 

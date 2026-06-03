@@ -72,6 +72,13 @@ export type ConversationPreview = Conversation & {
   latest_message?: Pick<Message, "body" | "image_url" | "sender_id" | "created_at"> | null;
 };
 
+export type ChatReadState = {
+  user_id: string;
+  conversation_id: string;
+  last_read_at: string;
+  updated_at: string;
+};
+
 export type ChatAssignmentInfo = {
   conversation_id: string;
   assigned_agent_id: string | null;

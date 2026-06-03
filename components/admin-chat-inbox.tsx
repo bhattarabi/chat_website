@@ -9,6 +9,7 @@ import type { ConversationPreview, Message } from "@/lib/types";
 
 type Props = {
   conversations: ConversationPreview[];
+  initialUnreadConversationIds: string[];
   selectedConversationId: string | null;
   currentUserId: string;
   isAdmin: boolean;
@@ -46,6 +47,7 @@ function assignedAgentName(conversation: ConversationPreview) {
 
 export function AdminChatInbox({
   conversations,
+  initialUnreadConversationIds,
   selectedConversationId,
   currentUserId,
   isAdmin,
@@ -53,7 +55,9 @@ export function AdminChatInbox({
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [items, setItems] = useState(conversations);
-  const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
+  const [unreadIds, setUnreadIds] = useState<Set<string>>(
+    () => new Set(initialUnreadConversationIds)
+  );
   const [assignmentFilter, setAssignmentFilter] = useState<AssignmentFilter>(initialAssignmentFilter);
   const itemsRef = useRef(conversations);
 
@@ -118,10 +122,25 @@ export function AdminChatInbox({
     return `/chat?${params.toString()}`;
   }
 
+  async function markConversationRead(conversationId: string, readAt = new Date().toISOString()) {
+    await supabase.from("chat_read_states").upsert(
+      {
+        conversation_id: conversationId,
+        last_read_at: readAt,
+        user_id: currentUserId
+      },
+      { onConflict: "user_id,conversation_id" }
+    );
+  }
+
   useEffect(() => {
     setItems(conversations);
     itemsRef.current = conversations;
   }, [conversations]);
+
+  useEffect(() => {
+    setUnreadIds(new Set(initialUnreadConversationIds));
+  }, [initialUnreadConversationIds]);
 
   useEffect(() => {
     setAssignmentFilter(initialAssignmentFilter);
@@ -196,6 +215,8 @@ export function AdminChatInbox({
             message.conversation_id !== selectedConversationId
           ) {
             setUnreadIds((current) => new Set(current).add(message.conversation_id));
+          } else if (message.conversation_id === selectedConversationId) {
+            await markConversationRead(message.conversation_id, message.created_at);
           }
         }
       )
@@ -241,6 +262,7 @@ export function AdminChatInbox({
       next.delete(selectedConversationId);
       return next;
     });
+    void markConversationRead(selectedConversationId);
   }, [selectedConversationId]);
 
   return (
