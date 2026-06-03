@@ -1451,19 +1451,18 @@ textarea {
 }
 
 .chat-inbox-header {
-  align-items: center;
   background: linear-gradient(135deg, #ffffff 0%, #eef4ff 100%);
   border-bottom: 1px solid var(--line);
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
+  display: grid;
+  gap: 10px;
   padding: 18px;
 }
 
-.chat-inbox-header > div {
-  display: grid;
-  flex: 1 1 auto;
-  gap: 10px;
+.chat-inbox-title-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
   min-width: 0;
 }
 
@@ -1472,35 +1471,17 @@ textarea {
   margin: 0;
 }
 
-.chat-inbox-header > span {
-  align-items: center;
-  background: #e8efff;
-  border-radius: 999px;
-  color: var(--accent-strong);
-  display: inline-flex;
-  font-size: 0.85rem;
-  font-weight: 800;
-  height: 28px;
-  justify-content: center;
-  min-width: 28px;
-  padding: 0 9px;
-}
-
 .chat-inbox-filter {
   align-items: center;
   background: #dbe5f6;
   border: 1px solid #c9d4ea;
   border-radius: 8px;
-  display: inline-flex;
+  display: grid;
   gap: 2px;
+  grid-template-columns: minmax(50px, 0.7fr) minmax(96px, 1fr) minmax(110px, 1.15fr);
   max-width: 100%;
-  overflow-x: auto;
   padding: 2px;
-  scrollbar-width: none;
-}
-
-.chat-inbox-filter::-webkit-scrollbar {
-  display: none;
+  width: 100%;
 }
 
 .chat-inbox-filter a {
@@ -1515,11 +1496,13 @@ textarea {
   font: inherit;
   font-size: 0.78rem;
   font-weight: 800;
-  flex: 0 0 auto;
+  min-width: 0;
+  gap: 7px;
   justify-content: center;
   line-height: 1;
   min-height: 32px;
-  padding: 0 11px;
+  padding: 0 8px;
+  text-align: center;
   transition:
     background 160ms ease,
     border-color 160ms ease,
@@ -1539,6 +1522,25 @@ textarea {
   border-color: var(--accent-strong);
   box-shadow: 0 5px 12px rgba(23, 94, 180, 0.18);
   color: white;
+}
+
+.chat-inbox-filter-count {
+  align-items: center;
+  background: #fff0e8;
+  border-radius: 999px;
+  color: #b83a18;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 900;
+  height: 18px;
+  justify-content: center;
+  min-width: 18px;
+  padding: 0 5px;
+}
+
+.chat-inbox-filter a.active .chat-inbox-filter-count {
+  background: white;
+  color: var(--accent-strong);
 }
 
 .chat-inbox-filter a:focus-visible {
@@ -2931,17 +2933,43 @@ small {
   }
 
   .chat-inbox-header {
-    padding: 14px 16px;
+    gap: 0;
+    padding: 10px 12px;
+  }
+
+  .chat-inbox-title-row {
+    display: none;
   }
 
   .chat-inbox-header h2 {
     font-size: 1rem;
   }
 
+  .chat-inbox-filter {
+    display: inline-flex;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    width: auto;
+  }
+
+  .chat-inbox-filter::-webkit-scrollbar {
+    display: none;
+  }
+
   .chat-inbox-filter a {
+    flex: 0 0 auto;
     font-size: 0.75rem;
+    gap: 5px;
     min-height: 30px;
-    padding: 0 9px;
+    padding: 0 6px;
+  }
+
+  .chat-inbox-filter-count {
+    font-size: 0.68rem;
+    height: 17px;
+    min-width: 17px;
+    padding: 0 4px;
   }
 
   .inbox-item {

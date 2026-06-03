@@ -57,21 +57,42 @@ export function AdminChatInbox({
   const [assignmentFilter, setAssignmentFilter] = useState<AssignmentFilter>(initialAssignmentFilter);
   const itemsRef = useRef(conversations);
 
-  const filteredItems = useMemo(() => {
-    if (assignmentFilter === "assigned") {
-      return items.filter((conversation) =>
-        isAdmin
-          ? Boolean(conversation.assigned_admin_id)
-          : conversation.assigned_admin_id === currentUserId
-      );
+  function matchesAssignmentFilter(conversation: ConversationPreview, filter: AssignmentFilter) {
+    if (filter === "assigned") {
+      return isAdmin
+        ? Boolean(conversation.assigned_admin_id)
+        : conversation.assigned_admin_id === currentUserId;
     }
 
-    if (assignmentFilter === "unassigned") {
-      return items.filter((conversation) => !conversation.assigned_admin_id);
+    if (filter === "unassigned") {
+      return !conversation.assigned_admin_id;
     }
 
-    return items;
-  }, [assignmentFilter, currentUserId, isAdmin, items]);
+    return true;
+  }
+
+  const filteredItems = useMemo(
+    () => items.filter((conversation) => matchesAssignmentFilter(conversation, assignmentFilter)),
+    [assignmentFilter, currentUserId, isAdmin, items]
+  );
+
+  const unreadCounts = useMemo(() => {
+    return assignmentFilters.reduce<Record<AssignmentFilter, number>>(
+      (counts, filter) => {
+        counts[filter.value] = items.filter(
+          (conversation) =>
+            unreadIds.has(conversation.id) &&
+            matchesAssignmentFilter(conversation, filter.value)
+        ).length;
+        return counts;
+      },
+      {
+        all: 0,
+        assigned: 0,
+        unassigned: 0
+      }
+    );
+  }, [currentUserId, isAdmin, items, unreadIds]);
 
   const emptyMessage =
     assignmentFilter === "assigned"
@@ -225,22 +246,26 @@ export function AdminChatInbox({
   return (
     <aside className="chat-inbox" aria-label="Customer chat inbox">
       <div className="chat-inbox-header">
-        <div>
+        <div className="chat-inbox-title-row">
           <h2>{isAdmin ? "Customer chats" : "Available chats"}</h2>
-          <div className="chat-inbox-filter" aria-label="Filter chats by assignment">
-            {assignmentFilters.map((filter) => (
-              <Link
-                aria-current={assignmentFilter === filter.value ? "page" : undefined}
-                className={assignmentFilter === filter.value ? "active" : ""}
-                href={filterHref(filter.value)}
-                key={filter.value}
-              >
-                {filter.label}
-              </Link>
-            ))}
-          </div>
         </div>
-        <span>{filteredItems.length}</span>
+        <div className="chat-inbox-filter" aria-label="Filter chats by assignment">
+          {assignmentFilters.map((filter) => (
+            <Link
+              aria-current={assignmentFilter === filter.value ? "page" : undefined}
+              className={assignmentFilter === filter.value ? "active" : ""}
+              href={filterHref(filter.value)}
+              key={filter.value}
+            >
+              {filter.label}
+              {unreadCounts[filter.value] > 0 ? (
+                <span className="chat-inbox-filter-count" aria-label={`${unreadCounts[filter.value]} new messages`}>
+                  {unreadCounts[filter.value]}
+                </span>
+              ) : null}
+            </Link>
+          ))}
+        </div>
       </div>
       <div className="chat-inbox-list">
         {filteredItems.length ? (
