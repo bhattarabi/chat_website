@@ -8,7 +8,7 @@ import { LocalTime } from "@/components/local-time";
 import type { Message } from "@/lib/types";
 
 type Props = {
-  conversationId: string;
+  conversationId: string | null;
   currentUserId: string;
   initialMessages: Message[];
   agentName?: string | null;
@@ -17,6 +17,7 @@ type Props = {
   subtitle?: string;
   leadingActions?: ReactNode;
   actions?: ReactNode;
+  onConversationReady?: (conversationId: string, assignmentInfo?: { assigned_agent_name: string | null }) => void;
 };
 
 function getDateParts(value: string, timeZone?: string) {
@@ -57,9 +58,11 @@ export function ChatRoom({
   title = "Support chat",
   subtitle = "",
   leadingActions,
-  actions
+  actions,
+  onConversationReady
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
+  const [activeConversationId, setActiveConversationId] = useState(conversationId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -76,19 +79,22 @@ export function ChatRoom({
   }, []);
 
   useEffect(() => {
+    setActiveConversationId(conversationId);
     setMessages(initialMessages);
   }, [conversationId, initialMessages]);
 
   useEffect(() => {
+    if (!activeConversationId) return;
+
     const channel = supabase
-      .channel(`conversation:${conversationId}`)
+      .channel(`conversation:${activeConversationId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`
+          filter: `conversation_id=eq.${activeConversationId}`
         },
         (payload) => {
           const next = payload.new as Message;
@@ -113,7 +119,7 @@ export function ChatRoom({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, currentUserId, supabase]);
+  }, [activeConversationId, currentUserId, supabase]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -126,12 +132,31 @@ export function ChatRoom({
     setSending(true);
 
     try {
+      let messageConversationId = activeConversationId;
+      let nextAgentName: string | null = agentName ?? null;
+
+      if (!messageConversationId) {
+        const { data: chat, error: chatError } = await supabase.rpc("ensure_customer_chat");
+        if (chatError) throw chatError;
+
+        const chatInfo = Array.isArray(chat) ? chat[0] : chat;
+        messageConversationId = chatInfo?.conversation_id ?? null;
+        nextAgentName = chatInfo?.assigned_agent_name ?? null;
+
+        if (!messageConversationId) {
+          throw new Error("Could not start support chat.");
+        }
+
+        setActiveConversationId(messageConversationId);
+        onConversationReady?.(messageConversationId, { assigned_agent_name: nextAgentName });
+      }
+
       let imagePath: string | null = null;
       let imageUrl: string | null = null;
 
       if (file) {
         const extension = file.name.split(".").pop() || "jpg";
-        imagePath = `${conversationId}/${crypto.randomUUID()}.${extension}`;
+        imagePath = `${messageConversationId}/${crypto.randomUUID()}.${extension}`;
         const { error: uploadError } = await supabase.storage
           .from("chat-attachments")
           .upload(imagePath, file, { upsert: false });
@@ -145,7 +170,7 @@ export function ChatRoom({
       }
 
       const { error } = await supabase.from("messages").insert({
-        conversation_id: conversationId,
+        conversation_id: messageConversationId,
         sender_id: currentUserId,
         body: body.trim() || null,
         image_path: imagePath,

@@ -185,9 +185,9 @@ export default async function ChatPage({ searchParams }: Props) {
             )}
           </div>
         </section>
-      ) : conversation ? (
+      ) : (
         <ChatRoom
-          conversationId={conversation.id}
+          conversationId={conversation?.id ?? null}
           currentUserId={user.id}
           initialMessages={messages ?? []}
           actions={
@@ -196,11 +196,6 @@ export default async function ChatPage({ searchParams }: Props) {
             </Link>
           }
         />
-      ) : (
-        <section className="empty-state">
-          <h1>No customer chats yet</h1>
-          <p>New customer messages will appear here as conversations are created.</p>
-        </section>
       )}
     </main>
   );

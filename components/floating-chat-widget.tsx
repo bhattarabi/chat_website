@@ -140,16 +140,16 @@ export function FloatingChatWidget({
         | ChatAssignmentInfo
         | null
         | undefined;
-      const conversationId = chatInfo?.conversation_id;
+      const conversationId = chatInfo?.conversation_id ?? null;
 
-      if (!conversationId) throw new Error("Could not load support chat.");
-
-      const { data: messages, error: messagesError } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: true })
-        .returns<Message[]>();
+      const { data: messages, error: messagesError } = conversationId
+        ? await supabase
+            .from("messages")
+            .select("*")
+            .eq("conversation_id", conversationId)
+            .order("created_at", { ascending: true })
+            .returns<Message[]>()
+        : { data: [] as Message[], error: null };
 
       if (messagesError) throw messagesError;
       if (!active) return;
@@ -266,12 +266,20 @@ export function FloatingChatWidget({
               Try again
             </button>
           </section>
-        ) : resolvedUserId && resolvedConversationId ? (
+        ) : resolvedUserId ? (
           <ChatRoom
             conversationId={resolvedConversationId}
             currentUserId={resolvedUserId}
             initialMessages={resolvedMessages}
             agentName={assignmentInfo?.assigned_agent_name ?? null}
+            onConversationReady={(conversationId, nextAssignmentInfo) => {
+              setResolvedConversationId(conversationId);
+              setAssignmentInfo({
+                conversation_id: conversationId,
+                assigned_agent_id: null,
+                assigned_agent_name: nextAssignmentInfo?.assigned_agent_name ?? null
+              });
+            }}
             actions={
               <>
                 <Link className="chat-icon-button" href={fullPageHref} aria-label="Open full page chat">
