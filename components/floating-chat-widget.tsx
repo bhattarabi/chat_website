@@ -41,6 +41,7 @@ export function FloatingChatWidget({
   );
   const [resolveAttempt, setResolveAttempt] = useState(0);
   const hasReadyChatRef = useRef(Boolean(currentUserId && (conversationId || opensFullPage)));
+  const previousServerUserIdRef = useRef(currentUserId);
 
   const { openedPath, closedPath } = useMemo(() => {
     const openedParams = new URLSearchParams(search);
@@ -71,8 +72,10 @@ export function FloatingChatWidget({
 
   useEffect(() => {
     const hasServerChat = Boolean(currentUserId && (conversationId || opensFullPage));
+    const didServerUserSignOut = Boolean(previousServerUserIdRef.current && !currentUserId);
+    previousServerUserIdRef.current = currentUserId;
 
-    if (hasServerChat || !hasReadyChatRef.current) {
+    if (hasServerChat || didServerUserSignOut || !hasReadyChatRef.current) {
       setResolvedUserId(currentUserId);
       setResolvedConversationId(conversationId);
       setResolvedMessages(initialMessages);
