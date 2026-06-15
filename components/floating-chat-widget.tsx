@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Maximize2, MessageCircle, Minus } from "lucide-react";
 import { ChatRoom } from "@/components/chat-room";
-import { GuestChatRoom } from "@/components/guest-chat-room";
+import { clearGuestChatSession, GuestChatRoom } from "@/components/guest-chat-room";
 import { createClient } from "@/lib/supabase-browser";
 import type { Message, Profile } from "@/lib/types";
 
@@ -75,6 +75,10 @@ export function FloatingChatWidget({
     const didServerUserSignOut = Boolean(previousServerUserIdRef.current && !currentUserId);
     previousServerUserIdRef.current = currentUserId;
 
+    if (currentUserId && !opensFullPage) {
+      clearGuestChatSession();
+    }
+
     if (hasServerChat || didServerUserSignOut || !hasReadyChatRef.current) {
       setResolvedUserId(currentUserId);
       setResolvedConversationId(conversationId);
@@ -133,6 +137,8 @@ export function FloatingChatWidget({
         setChatStatus("ready");
         return;
       }
+
+      clearGuestChatSession();
 
       const { data: customerChat, error: chatError } = await supabase.rpc("current_customer_chat");
 

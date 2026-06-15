@@ -21,6 +21,10 @@ type GuestSession = {
 const storageKey = "guest-support-chat";
 const messageRefreshMs = 900;
 
+export function clearGuestChatSession() {
+  window.localStorage.removeItem(storageKey);
+}
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -58,11 +62,11 @@ export function GuestChatRoom({ actions }: Props) {
       setName(parsed.name);
       setEmail(parsed.email);
       loadMessages(parsed).catch(() => {
-        window.localStorage.removeItem(storageKey);
+        clearGuestChatSession();
         setSession(null);
       });
     } catch {
-      window.localStorage.removeItem(storageKey);
+      clearGuestChatSession();
     }
   }, []);
 
