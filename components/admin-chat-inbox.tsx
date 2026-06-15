@@ -31,6 +31,17 @@ function previewText(conversation: ConversationPreview) {
   return "New message";
 }
 
+function needsReply(
+  conversation: ConversationPreview,
+  message: ConversationPreview["latest_message"]
+) {
+  if (!message || message.sender_type === "system") return false;
+  return (
+    message.sender_type === "guest" ||
+    (conversation.customer_id !== null && message.sender_id === conversation.customer_id)
+  );
+}
+
 export function AdminChatInbox({
   conversations,
   initialUnreadConversationIds,
@@ -52,17 +63,6 @@ export function AdminChatInbox({
     params.set("conversation", conversationId);
 
     return `/chat?${params.toString()}`;
-  }
-
-  async function markConversationRead(conversationId: string, readAt = new Date().toISOString()) {
-    await supabase.from("chat_read_states").upsert(
-      {
-        conversation_id: conversationId,
-        last_read_at: readAt,
-        user_id: currentUserId
-      },
-      { onConflict: "user_id,conversation_id" }
-    );
   }
 
   useEffect(() => {
@@ -87,10 +87,13 @@ export function AdminChatInbox({
         async (payload) => {
           const message = payload.new as Message;
 
+          if (message.sender_type === "system") return;
+
           const preview = {
             body: message.body,
             image_url: message.image_url,
             sender_id: message.sender_id,
+            sender_type: message.sender_type,
             created_at: message.created_at
           };
 
@@ -99,6 +102,10 @@ export function AdminChatInbox({
           );
 
           if (knownConversation) {
+            const currentConversation = itemsRef.current.find(
+              (conversation) => conversation.id === message.conversation_id
+            );
+
             setItems((current) => {
               const updated = current.map((conversation) =>
                 conversation.id === message.conversation_id
@@ -118,6 +125,18 @@ export function AdminChatInbox({
               itemsRef.current = sorted;
               return sorted;
             });
+
+            if (currentConversation) {
+              setUnreadIds((current) => {
+                const next = new Set(current);
+                if (needsReply(currentConversation, preview)) {
+                  next.add(message.conversation_id);
+                } else {
+                  next.delete(message.conversation_id);
+                }
+                return next;
+              });
+            }
           } else {
             const { data } = await supabase
               .from("conversations")
@@ -135,16 +154,11 @@ export function AdminChatInbox({
                 itemsRef.current = sorted;
                 return sorted;
               });
-            }
-          }
 
-          if (
-            message.sender_id !== currentUserId &&
-            message.conversation_id !== selectedConversationId
-          ) {
-            setUnreadIds((current) => new Set(current).add(message.conversation_id));
-          } else if (message.conversation_id === selectedConversationId) {
-            await markConversationRead(message.conversation_id, message.created_at);
+              if (needsReply(data, preview)) {
+                setUnreadIds((current) => new Set(current).add(message.conversation_id));
+              }
+            }
           }
         }
       )
@@ -181,17 +195,7 @@ export function AdminChatInbox({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId, selectedConversationId, supabase]);
-
-  useEffect(() => {
-    if (!selectedConversationId) return;
-    setUnreadIds((current) => {
-      const next = new Set(current);
-      next.delete(selectedConversationId);
-      return next;
-    });
-    void markConversationRead(selectedConversationId);
-  }, [selectedConversationId]);
+  }, [supabase]);
 
   return (
     <aside className="chat-inbox" aria-label="Customer chat inbox">
@@ -199,7 +203,7 @@ export function AdminChatInbox({
         <div className="chat-inbox-title-row">
           <h2>Customer chats</h2>
           {unreadCount > 0 ? (
-            <span className="chat-inbox-unread-count" aria-label={`${unreadCount} chats with new messages`}>
+            <span className="chat-inbox-unread-count" aria-label={`${unreadCount} chats need a reply`}>
               {unreadCount}
             </span>
           ) : null}
@@ -241,7 +245,7 @@ export function AdminChatInbox({
                 </span>
                 <span className="inbox-trailing">
                   <LocalTime value={conversation.last_message_at} />
-                  {unread ? <span className="inbox-unread-dot" aria-label="Unread message" /> : null}
+                  {unread ? <span className="inbox-unread-dot" aria-label="Needs reply" /> : null}
                   <ChevronRight aria-hidden="true" size={16} />
                 </span>
               </Link>

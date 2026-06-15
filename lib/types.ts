@@ -67,7 +67,10 @@ export type Conversation = {
 };
 
 export type ConversationPreview = Conversation & {
-  latest_message?: Pick<Message, "body" | "image_url" | "sender_id" | "created_at"> | null;
+  latest_message?: Pick<
+    Message,
+    "body" | "image_url" | "sender_id" | "sender_type" | "created_at"
+  > | null;
 };
 
 export type ChatReadState = {

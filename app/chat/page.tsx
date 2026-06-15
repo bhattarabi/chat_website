@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, Minimize2 } from "lucide-react";
 import { StaffAppHeader } from "@/components/staff-app-header";
 import { createClient } from "@/lib/supabase-server";
-import type { ChatReadState, Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
+import type { Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
 import { AdminChatInbox } from "@/components/admin-chat-inbox";
 import { ChatRoom } from "@/components/chat-room";
 
@@ -73,6 +73,7 @@ export default async function ChatPage({ searchParams }: Props) {
       supabase
         .from("messages")
         .select("*, sender_profile:sender_id(email, full_name, role)")
+        .neq("sender_type", "system")
         .order("created_at", { ascending: false })
         .limit(200)
         .returns<Message[]>()
@@ -90,27 +91,12 @@ export default async function ChatPage({ searchParams }: Props) {
       latest_message: latestByConversation.get(item.id) ?? null
     }));
 
-    const conversationIds = conversations.map((item) => item.id);
-    const { data: readStates } = conversationIds.length
-      ? await supabase
-          .from("chat_read_states")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("conversation_id", conversationIds)
-          .returns<ChatReadState[]>()
-      : { data: [] as ChatReadState[] };
-    const lastReadByConversation = new Map(
-      (readStates ?? []).map((state) => [
-        state.conversation_id,
-        new Date(state.last_read_at).getTime()
-      ])
-    );
     initialUnreadConversationIds = conversations
-      .filter((item) => {
-        if (!item.latest_message || item.latest_message.sender_id === user.id) return false;
-        const lastReadAt = lastReadByConversation.get(item.id) ?? 0;
-        return new Date(item.latest_message.created_at).getTime() > lastReadAt;
-      })
+      .filter(
+        (item) =>
+          item.latest_message?.sender_type === "guest" ||
+          (item.customer_id !== null && item.latest_message?.sender_id === item.customer_id)
+      )
       .map((item) => item.id);
 
     conversation =
