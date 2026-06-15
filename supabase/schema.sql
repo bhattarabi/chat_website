@@ -32,7 +32,6 @@ create table public.platform_links (
 create table public.conversations (
   id uuid primary key default gen_random_uuid(),
   customer_id uuid references public.profiles(id) on delete cascade,
-  assigned_admin_id uuid references public.profiles(id) on delete set null,
   guest_name text,
   guest_email text,
   guest_token_hash text,
@@ -131,7 +130,6 @@ create table public.main_feature (
 
 create index profiles_role_idx on public.profiles(role);
 create index platform_links_active_sort_idx on public.platform_links(active, sort_order);
-create index conversations_assigned_admin_idx on public.conversations(assigned_admin_id);
 create index conversations_customer_idx on public.conversations(customer_id);
 create unique index conversations_guest_token_hash_idx
 on public.conversations(guest_token_hash);
@@ -201,46 +199,6 @@ create trigger messages_touch_conversation
 after insert on public.messages
 for each row execute function public.touch_conversation_last_message();
 
-create or replace function public.log_chat_assignment_change()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  agent_name text;
-begin
-  if old.assigned_admin_id is not distinct from new.assigned_admin_id then
-    return new;
-  end if;
-
-  if new.assigned_admin_id is null then
-    insert into public.messages (conversation_id, sender_id, sender_type, body)
-    values (new.id, null, 'system', 'Chat reassigned. Waiting for an agent.');
-    return new;
-  end if;
-
-  select coalesce(nullif(full_name, ''), email)
-  into agent_name
-  from public.profiles
-  where id = new.assigned_admin_id;
-
-  insert into public.messages (conversation_id, sender_id, sender_type, body)
-  values (
-    new.id,
-    null,
-    'system',
-    'Chat reassigned to ' || coalesce(agent_name, 'an agent') || '.'
-  );
-
-  return new;
-end;
-$$;
-
-create trigger conversations_log_chat_assignment_change
-after update of assigned_admin_id on public.conversations
-for each row execute function public.log_chat_assignment_change();
-
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -299,15 +257,7 @@ set search_path = public
 as $$
   select profile_id = user_id
     or public.is_admin(user_id)
-    or (
-      public.is_chat_agent(user_id)
-      and exists (
-        select 1
-        from public.conversations
-        where (assigned_admin_id is null or assigned_admin_id = user_id)
-          and (customer_id = profile_id or assigned_admin_id = profile_id)
-      )
-    );
+    or public.is_chat_agent(user_id);
 $$;
 
 create or replace function public.user_can_access_conversation(conversation_id uuid, user_id uuid)
@@ -323,42 +273,13 @@ as $$
     where id = conversation_id
       and (
         customer_id = user_id
-        or (
-          (assigned_admin_id is null or assigned_admin_id = user_id)
-          and public.is_chat_agent(user_id)
-        )
+        or public.is_chat_agent(user_id)
       )
   ) or public.is_admin(user_id);
 $$;
 
-create or replace function public.claim_unassigned_chat_on_agent_reply()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if new.sender_type = 'user' and public.is_chat_agent(new.sender_id) then
-    update public.conversations
-    set assigned_admin_id = new.sender_id
-    where id = new.conversation_id
-      and assigned_admin_id is null;
-  end if;
-
-  return new;
-end;
-$$;
-
-create trigger messages_claim_unassigned_chat_on_agent_reply
-before insert on public.messages
-for each row execute function public.claim_unassigned_chat_on_agent_reply();
-
 create or replace function public.current_customer_chat()
-returns table(
-  conversation_id uuid,
-  assigned_agent_id uuid,
-  assigned_agent_name text
-)
+returns table(conversation_id uuid)
 language plpgsql
 security definer
 set search_path = public
@@ -392,26 +313,13 @@ begin
     return;
   end if;
 
-  select
-    conversations.assigned_admin_id,
-    coalesce(nullif(profiles.full_name, ''), profiles.email)
-  into assigned_agent_id, assigned_agent_name
-  from public.conversations
-  left join public.profiles
-    on profiles.id = conversations.assigned_admin_id
-  where conversations.id = chat_id;
-
   conversation_id := chat_id;
   return next;
 end;
 $$;
 
 create or replace function public.ensure_customer_chat()
-returns table(
-  conversation_id uuid,
-  assigned_agent_id uuid,
-  assigned_agent_name text
-)
+returns table(conversation_id uuid)
 language plpgsql
 security definer
 set search_path = public
@@ -446,15 +354,6 @@ begin
     values (current_user_id)
     returning id into chat_id;
   end if;
-
-  select
-    conversations.assigned_admin_id,
-    coalesce(nullif(profiles.full_name, ''), profiles.email)
-  into assigned_agent_id, assigned_agent_name
-  from public.conversations
-  left join public.profiles
-    on profiles.id = conversations.assigned_admin_id
-  where conversations.id = chat_id;
 
   conversation_id := chat_id;
   return next;
@@ -522,31 +421,6 @@ as $$
     and conversations.guest_token_hash = public.guest_token_hash(guest_token)
     and messages.sender_type <> 'system'
   order by messages.created_at asc;
-$$;
-
-create or replace function public.guest_chat_details(
-  chat_conversation_id uuid,
-  guest_token text
-)
-returns table(
-  conversation_id uuid,
-  assigned_agent_id uuid,
-  assigned_agent_name text
-)
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select
-    conversations.id,
-    conversations.assigned_admin_id,
-    coalesce(nullif(profiles.full_name, ''), profiles.email)
-  from public.conversations
-  left join public.profiles
-    on profiles.id = conversations.assigned_admin_id
-  where conversations.id = chat_conversation_id
-    and conversations.guest_token_hash = public.guest_token_hash(guest_token);
 $$;
 
 create or replace function public.send_guest_message(
@@ -673,24 +547,6 @@ on public.conversations for insert
 to authenticated
 with check (customer_id = auth.uid());
 
-create policy "Admins update conversations"
-on public.conversations for update
-to authenticated
-using (public.is_admin(auth.uid()))
-with check (public.is_admin(auth.uid()));
-
-create policy "Agents release their conversations"
-on public.conversations for update
-to authenticated
-using (
-  assigned_admin_id = auth.uid()
-  and public.is_chat_agent(auth.uid())
-)
-with check (
-  assigned_admin_id is null
-  and public.is_chat_agent(auth.uid())
-);
-
 create policy "Participants read messages"
 on public.messages for select
 to authenticated
@@ -771,7 +627,6 @@ with check (public.is_admin(auth.uid()));
 
 grant execute on function public.start_guest_chat(text, text, text) to anon, authenticated;
 grant execute on function public.guest_chat_messages(uuid, text) to anon, authenticated;
-grant execute on function public.guest_chat_details(uuid, text) to anon, authenticated;
 grant execute on function public.send_guest_message(uuid, text, text) to anon, authenticated;
 grant execute on function public.current_customer_chat() to authenticated;
 grant execute on function public.ensure_customer_chat() to authenticated;

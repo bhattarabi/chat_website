@@ -1,45 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, Minimize2 } from "lucide-react";
-import { updateChatAssignment } from "@/app/admin/actions";
 import { StaffAppHeader } from "@/components/staff-app-header";
 import { createClient } from "@/lib/supabase-server";
 import type { ChatReadState, Conversation, ConversationPreview, Message, Profile } from "@/lib/types";
-import { AdminChatInbox, type AssignmentFilter } from "@/components/admin-chat-inbox";
+import { AdminChatInbox } from "@/components/admin-chat-inbox";
 import { ChatRoom } from "@/components/chat-room";
 
 type Props = {
-  searchParams: Promise<{ assignment?: string; conversation?: string; returnTo?: string }>;
+  searchParams: Promise<{ conversation?: string; returnTo?: string }>;
 };
-
-function assignmentFilter(value: string | undefined): AssignmentFilter {
-  return value === "assigned" || value === "unassigned" ? value : "all";
-}
-
-function chatListHref(filter: AssignmentFilter) {
-  return filter === "all" ? "/chat" : `/chat?assignment=${filter}`;
-}
-
-function filterConversations(
-  conversations: ConversationPreview[],
-  filter: AssignmentFilter,
-  currentUserId: string,
-  isAdmin: boolean
-) {
-  if (filter === "assigned") {
-    return conversations.filter((conversation) =>
-      isAdmin
-        ? Boolean(conversation.assigned_admin_id)
-        : conversation.assigned_admin_id === currentUserId
-    );
-  }
-
-  if (filter === "unassigned") {
-    return conversations.filter((conversation) => !conversation.assigned_admin_id);
-  }
-
-  return conversations;
-}
 
 function conversationTitle(conversation: ConversationPreview | Conversation) {
   if ("profiles" in conversation && conversation.profiles) {
@@ -50,22 +20,17 @@ function conversationTitle(conversation: ConversationPreview | Conversation) {
 }
 
 function conversationSubtitle(conversation: ConversationPreview | Conversation) {
-  const contact =
+  return (
     "profiles" in conversation && conversation.profiles?.phone
       ? `Phone: ${conversation.profiles.phone}`
       : conversation.guest_email
         ? `Guest: ${conversation.guest_email}`
-        : null;
-  const assignment = conversation.assigned_profile
-    ? `Assigned to ${conversation.assigned_profile.full_name || conversation.assigned_profile.email}`
-    : "Unassigned";
-
-  return contact ? `${contact} - ${assignment}` : assignment;
+        : ""
+  );
 }
 
 export default async function ChatPage({ searchParams }: Props) {
-  const { assignment, conversation: selectedConversationId, returnTo } = await searchParams;
-  const selectedAssignmentFilter = assignmentFilter(assignment);
+  const { conversation: selectedConversationId, returnTo } = await searchParams;
   const popupHref = returnTo?.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/?chat=open";
   const supabase = await createClient();
   const {
@@ -85,7 +50,6 @@ export default async function ChatPage({ searchParams }: Props) {
   let conversation: ConversationPreview | Conversation | null = null;
   let conversations: ConversationPreview[] = [];
   let initialUnreadConversationIds: string[] = [];
-  let agents: Profile[] = [];
   const isChatStaff = profile.role === "admin" || profile.role === "agent";
 
   if (profile.role === "customer") {
@@ -100,29 +64,19 @@ export default async function ChatPage({ searchParams }: Props) {
       : { data: null };
     conversation = currentConversation;
   } else if (isChatStaff) {
-    const [{ data: adminConversations }, { data: latestMessages }, { data: activeAgents }] = await Promise.all([
+    const [{ data: adminConversations }, { data: latestMessages }] = await Promise.all([
       supabase
         .from("conversations")
-        .select("*, profiles:customer_id(email, full_name, phone), assigned_profile:assigned_admin_id(email, full_name)")
+        .select("*, profiles:customer_id(email, full_name, phone)")
         .order("last_message_at", { ascending: false })
         .returns<ConversationPreview[]>(),
       supabase
         .from("messages")
-        .select("*")
+        .select("*, sender_profile:sender_id(email, full_name, role)")
         .order("created_at", { ascending: false })
         .limit(200)
-        .returns<Message[]>(),
-      profile.role === "admin"
-        ? supabase
-            .from("profiles")
-            .select("*")
-            .eq("role", "agent")
-            .eq("disabled", false)
-            .order("full_name")
-            .returns<Profile[]>()
-        : Promise.resolve({ data: [] as Profile[] })
+        .returns<Message[]>()
     ]);
-    agents = activeAgents ?? [];
 
     const latestByConversation = new Map<string, Message>();
     for (const message of latestMessages ?? []) {
@@ -159,23 +113,16 @@ export default async function ChatPage({ searchParams }: Props) {
       })
       .map((item) => item.id);
 
-    const filteredConversations = filterConversations(
-      conversations,
-      selectedAssignmentFilter,
-      user.id,
-      profile.role === "admin"
-    );
-
     conversation =
-      filteredConversations.find((item) => item.id === selectedConversationId) ??
-      filteredConversations[0] ??
+      conversations.find((item) => item.id === selectedConversationId) ??
+      conversations[0] ??
       null;
   }
 
   const { data: messages } = conversation
     ? await supabase
         .from("messages")
-        .select("*")
+        .select("*, sender_profile:sender_id(email, full_name, role)")
         .eq("conversation_id", conversation.id)
         .order("created_at", { ascending: true })
         .returns<Message[]>()
@@ -191,8 +138,6 @@ export default async function ChatPage({ searchParams }: Props) {
             initialUnreadConversationIds={initialUnreadConversationIds}
             selectedConversationId={selectedConversationId ? conversation?.id ?? null : null}
             currentUserId={user.id}
-            isAdmin={profile.role === "admin"}
-            initialAssignmentFilter={selectedAssignmentFilter}
           />
           <div className="staff-chat-detail">
             {conversation ? (
@@ -200,42 +145,16 @@ export default async function ChatPage({ searchParams }: Props) {
                 conversationId={conversation.id}
                 currentUserId={user.id}
                 initialMessages={messages ?? []}
-                showAssignmentNotices
+                showAgentNames
                 leadingActions={
-                  <Link className="chat-icon-button mobile-chat-list" href={chatListHref(selectedAssignmentFilter)} aria-label="Back to chat list">
+                  <Link className="chat-icon-button mobile-chat-list" href="/chat" aria-label="Back to chat list">
                     <ArrowLeft aria-hidden="true" size={18} />
                   </Link>
                 }
                 actions={
-                  <>
-                    {profile.role === "admin" ? (
-                      <form action={updateChatAssignment} className="chat-assignment-form">
-                        <input type="hidden" name="conversation_id" value={conversation.id} />
-                        <select
-                          name="assigned_admin_id"
-                          aria-label="Assigned chat agent"
-                          defaultValue={conversation.assigned_admin_id ?? ""}
-                        >
-                          <option value="">Unassigned</option>
-                          {agents.map((agent) => (
-                            <option value={agent.id} key={agent.id}>
-                              {agent.full_name || agent.email}
-                            </option>
-                          ))}
-                        </select>
-                        <button type="submit">Assign</button>
-                      </form>
-                    ) : conversation.assigned_admin_id === user.id ? (
-                      <form action={updateChatAssignment} className="chat-assignment-form">
-                        <input type="hidden" name="conversation_id" value={conversation.id} />
-                        <input type="hidden" name="assigned_admin_id" value="" />
-                        <button type="submit">Unassign</button>
-                      </form>
-                    ) : null}
-                    <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
-                      <Minimize2 aria-hidden="true" size={18} />
-                    </Link>
-                  </>
+                  <Link className="chat-icon-button" href={popupHref} aria-label="Switch to popup chat">
+                    <Minimize2 aria-hidden="true" size={18} />
+                  </Link>
                 }
                 title={conversationTitle(conversation)}
                 subtitle={conversationSubtitle(conversation)}

@@ -5,10 +5,9 @@ import type { ReactNode } from "react";
 import { MessageCircle, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { LocalTime } from "@/components/local-time";
-import type { ChatAssignmentInfo, Message } from "@/lib/types";
+import type { Message } from "@/lib/types";
 
 type Props = {
-  agentName?: string | null;
   actions?: ReactNode;
 };
 
@@ -26,14 +25,13 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export function GuestChatRoom({ agentName, actions }: Props) {
+export function GuestChatRoom({ actions }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [session, setSession] = useState<GuestSession | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [body, setBody] = useState("");
-  const [resolvedAgentName, setResolvedAgentName] = useState<string | null>(agentName ?? null);
   const [status, setStatus] = useState<"idle" | "loading" | "sending">("idle");
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -49,20 +47,6 @@ export function GuestChatRoom({ agentName, actions }: Props) {
     setMessages((data ?? []) as Message[]);
   }
 
-  async function loadAssignment(nextSession: GuestSession) {
-    const { data, error: detailsError } = await supabase.rpc("guest_chat_details", {
-      chat_conversation_id: nextSession.conversationId,
-      guest_token: nextSession.token
-    });
-
-    if (detailsError) throw detailsError;
-
-    const details = (Array.isArray(data) ? data[0] : data) as ChatAssignmentInfo | null | undefined;
-    const nextName = details?.assigned_agent_name ?? null;
-
-    setResolvedAgentName(nextName);
-  }
-
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);
     if (!saved) return;
@@ -73,10 +57,9 @@ export function GuestChatRoom({ agentName, actions }: Props) {
       setSession(parsed);
       setName(parsed.name);
       setEmail(parsed.email);
-      Promise.all([loadMessages(parsed), loadAssignment(parsed)]).catch(() => {
+      loadMessages(parsed).catch(() => {
         window.localStorage.removeItem(storageKey);
         setSession(null);
-        setResolvedAgentName(null);
       });
     } catch {
       window.localStorage.removeItem(storageKey);
@@ -88,7 +71,6 @@ export function GuestChatRoom({ agentName, actions }: Props) {
 
     const interval = window.setInterval(() => {
       loadMessages(session).catch(() => undefined);
-      loadAssignment(session).catch(() => undefined);
     }, messageRefreshMs);
 
     return () => window.clearInterval(interval);
@@ -101,7 +83,6 @@ export function GuestChatRoom({ agentName, actions }: Props) {
     function refreshWhenActive() {
       if (document.visibilityState === "visible") {
         loadMessages(activeSession).catch(() => undefined);
-        loadAssignment(activeSession).catch(() => undefined);
       }
     }
 
@@ -156,7 +137,7 @@ export function GuestChatRoom({ agentName, actions }: Props) {
 
       window.localStorage.setItem(storageKey, JSON.stringify(nextSession));
       setSession(nextSession);
-      await Promise.all([loadMessages(nextSession), loadAssignment(nextSession)]);
+      await loadMessages(nextSession);
     } catch {
       setError("Chat is unavailable right now. Please try again.");
     } finally {

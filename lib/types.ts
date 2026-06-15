@@ -58,14 +58,12 @@ export type MainFeature = {
 export type Conversation = {
   id: string;
   customer_id: string | null;
-  assigned_admin_id: string | null;
   guest_name: string | null;
   guest_email: string | null;
   guest_token_hash: string | null;
   subject: string;
   last_message_at: string;
   profiles?: Pick<Profile, "email" | "full_name" | "phone"> | null;
-  assigned_profile?: Pick<Profile, "email" | "full_name"> | null;
 };
 
 export type ConversationPreview = Conversation & {
@@ -79,12 +77,6 @@ export type ChatReadState = {
   updated_at: string;
 };
 
-export type ChatAssignmentInfo = {
-  conversation_id: string;
-  assigned_agent_id: string | null;
-  assigned_agent_name: string | null;
-};
-
 export type Message = {
   id: string;
   conversation_id: string;
@@ -94,4 +86,5 @@ export type Message = {
   image_path: string | null;
   image_url: string | null;
   created_at: string;
+  sender_profile?: Pick<Profile, "email" | "full_name" | "role"> | null;
 };

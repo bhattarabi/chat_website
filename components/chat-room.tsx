@@ -11,13 +11,12 @@ type Props = {
   conversationId: string | null;
   currentUserId: string;
   initialMessages: Message[];
-  agentName?: string | null;
-  showAssignmentNotices?: boolean;
+  showAgentNames?: boolean;
   title?: string;
   subtitle?: string;
   leadingActions?: ReactNode;
   actions?: ReactNode;
-  onConversationReady?: (conversationId: string, assignmentInfo?: { assigned_agent_name: string | null }) => void;
+  onConversationReady?: (conversationId: string) => void;
 };
 
 function getDateParts(value: string, timeZone?: string) {
@@ -53,8 +52,7 @@ export function ChatRoom({
   conversationId,
   currentUserId,
   initialMessages,
-  agentName,
-  showAssignmentNotices = false,
+  showAgentNames = false,
   title = "Support chat",
   subtitle = "",
   leadingActions,
@@ -70,9 +68,7 @@ export function ChatRoom({
   const [mounted, setMounted] = useState(false);
   const [freshMessageIds, setFreshMessageIds] = useState<Set<string>>(new Set());
   const endRef = useRef<HTMLDivElement | null>(null);
-  const visibleMessages = showAssignmentNotices
-    ? messages
-    : messages.filter((message) => message.sender_type !== "system");
+  const visibleMessages = messages.filter((message) => message.sender_type !== "system");
 
   useEffect(() => {
     setMounted(true);
@@ -96,8 +92,17 @@ export function ChatRoom({
           table: "messages",
           filter: `conversation_id=eq.${activeConversationId}`
         },
-        (payload) => {
+        async (payload) => {
           const next = payload.new as Message;
+          if (showAgentNames && next.sender_id) {
+            const { data: senderProfile } = await supabase
+              .from("profiles")
+              .select("email, full_name, role")
+              .eq("id", next.sender_id)
+              .maybeSingle<NonNullable<Message["sender_profile"]>>();
+            next.sender_profile = senderProfile ?? null;
+          }
+
           setMessages((current) => {
             return current.some((message) => message.id === next.id) ? current : [...current, next];
           });
@@ -119,7 +124,7 @@ export function ChatRoom({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeConversationId, currentUserId, supabase]);
+  }, [activeConversationId, currentUserId, showAgentNames, supabase]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -133,7 +138,6 @@ export function ChatRoom({
 
     try {
       let messageConversationId = activeConversationId;
-      let nextAgentName: string | null = agentName ?? null;
 
       if (!messageConversationId) {
         const { data: chat, error: chatError } = await supabase.rpc("ensure_customer_chat");
@@ -141,14 +145,13 @@ export function ChatRoom({
 
         const chatInfo = Array.isArray(chat) ? chat[0] : chat;
         messageConversationId = chatInfo?.conversation_id ?? null;
-        nextAgentName = chatInfo?.assigned_agent_name ?? null;
 
         if (!messageConversationId) {
           throw new Error("Could not start support chat.");
         }
 
         setActiveConversationId(messageConversationId);
-        onConversationReady?.(messageConversationId, { assigned_agent_name: nextAgentName });
+        onConversationReady?.(messageConversationId);
       }
 
       let imagePath: string | null = null;
@@ -207,7 +210,16 @@ export function ChatRoom({
       <div className="messages" aria-live="polite">
         {visibleMessages.map((message, index) => {
           const mine = message.sender_id === currentUserId;
-          const system = message.sender_type === "system";
+          const sentByStaff =
+            mine ||
+            (showAgentNames &&
+              (message.sender_profile?.role === "agent" || message.sender_profile?.role === "admin"));
+          const agentSender =
+            showAgentNames &&
+            message.sender_type === "user" &&
+            (message.sender_profile?.role === "agent" || message.sender_profile?.role === "admin")
+              ? message.sender_profile.full_name || message.sender_profile.email
+              : null;
           const timeZone = mounted ? undefined : "UTC";
           const messageDateKey = getDateKey(message.created_at, timeZone);
           const previousMessage = visibleMessages[index - 1];
@@ -221,18 +233,12 @@ export function ChatRoom({
                   {formatDateLabel(message.created_at, timeZone)}
                 </time>
               ) : null}
-              {system ? (
-                <p className="chat-assignment-notice">
-                  <LocalTime value={message.created_at} />
-                  <span>{message.body}</span>
-                </p>
-              ) : (
-                <article className={`message${mine ? " mine" : ""}${freshMessageIds.has(message.id) ? " incoming-new" : ""}`}>
-                  {message.body ? <p>{message.body}</p> : null}
-                  {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
-                  <LocalTime value={message.created_at} />
-                </article>
-              )}
+              <article className={`message${sentByStaff ? " mine" : ""}${freshMessageIds.has(message.id) ? " incoming-new" : ""}`}>
+                {agentSender ? <strong className="message-agent-name">{agentSender}</strong> : null}
+                {message.body ? <p>{message.body}</p> : null}
+                {message.image_url ? <img src={message.image_url} alt="Chat attachment" /> : null}
+                <LocalTime value={message.created_at} />
+              </article>
             </Fragment>
           );
         })}

@@ -12,17 +12,7 @@ type Props = {
   initialUnreadConversationIds: string[];
   selectedConversationId: string | null;
   currentUserId: string;
-  isAdmin: boolean;
-  initialAssignmentFilter: AssignmentFilter;
 };
-
-export type AssignmentFilter = "all" | "assigned" | "unassigned";
-
-const assignmentFilters: { value: AssignmentFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "assigned", label: "Assigned" },
-  { value: "unassigned", label: "Unassigned" }
-];
 
 function customerName(conversation: ConversationPreview) {
   return (
@@ -41,83 +31,25 @@ function previewText(conversation: ConversationPreview) {
   return "New message";
 }
 
-function assignedAgentName(conversation: ConversationPreview) {
-  return conversation.assigned_profile?.full_name || conversation.assigned_profile?.email || "Unassigned";
-}
-
 export function AdminChatInbox({
   conversations,
   initialUnreadConversationIds,
   selectedConversationId,
-  currentUserId,
-  isAdmin,
-  initialAssignmentFilter
+  currentUserId
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [items, setItems] = useState(conversations);
   const [unreadIds, setUnreadIds] = useState<Set<string>>(
     () => new Set(initialUnreadConversationIds)
   );
-  const [assignmentFilter, setAssignmentFilter] = useState<AssignmentFilter>(initialAssignmentFilter);
   const itemsRef = useRef(conversations);
 
-  function matchesAssignmentFilter(conversation: ConversationPreview, filter: AssignmentFilter) {
-    if (filter === "assigned") {
-      return isAdmin
-        ? Boolean(conversation.assigned_admin_id)
-        : conversation.assigned_admin_id === currentUserId;
-    }
-
-    if (filter === "unassigned") {
-      return !conversation.assigned_admin_id;
-    }
-
-    return true;
-  }
-
-  const filteredItems = useMemo(
-    () => items.filter((conversation) => matchesAssignmentFilter(conversation, assignmentFilter)),
-    [assignmentFilter, currentUserId, isAdmin, items]
-  );
-
-  const unreadCounts = useMemo(() => {
-    return assignmentFilters.reduce<Record<AssignmentFilter, number>>(
-      (counts, filter) => {
-        counts[filter.value] = items.filter(
-          (conversation) =>
-            unreadIds.has(conversation.id) &&
-            matchesAssignmentFilter(conversation, filter.value)
-        ).length;
-        return counts;
-      },
-      {
-        all: 0,
-        assigned: 0,
-        unassigned: 0
-      }
-    );
-  }, [currentUserId, isAdmin, items, unreadIds]);
-
-  const emptyMessage =
-    assignmentFilter === "assigned"
-      ? "No assigned customer chats match this filter."
-      : assignmentFilter === "unassigned"
-        ? "No unassigned customer chats match this filter."
-        : "New customer messages will appear here.";
-
-  function filterHref(filter: AssignmentFilter) {
-    return filter === "all" ? "/chat" : `/chat?assignment=${filter}`;
-  }
+  const unreadCount = unreadIds.size;
+  const emptyMessage = "New customer messages will appear here.";
 
   function conversationHref(conversationId: string) {
     const params = new URLSearchParams();
     params.set("conversation", conversationId);
-
-    if (assignmentFilter === "all") {
-      params.delete("assignment");
-    } else {
-      params.set("assignment", assignmentFilter);
-    }
 
     return `/chat?${params.toString()}`;
   }
@@ -141,10 +73,6 @@ export function AdminChatInbox({
   useEffect(() => {
     setUnreadIds(new Set(initialUnreadConversationIds));
   }, [initialUnreadConversationIds]);
-
-  useEffect(() => {
-    setAssignmentFilter(initialAssignmentFilter);
-  }, [initialAssignmentFilter]);
 
   useEffect(() => {
     const channel = supabase
@@ -193,7 +121,7 @@ export function AdminChatInbox({
           } else {
             const { data } = await supabase
               .from("conversations")
-              .select("*, profiles:customer_id(email, full_name, phone), assigned_profile:assigned_admin_id(email, full_name)")
+              .select("*, profiles:customer_id(email, full_name, phone)")
               .eq("id", message.conversation_id)
               .single<ConversationPreview>();
 
@@ -231,7 +159,7 @@ export function AdminChatInbox({
           const conversationId = (payload.new as ConversationPreview).id;
           const { data } = await supabase
             .from("conversations")
-            .select("*, profiles:customer_id(email, full_name, phone), assigned_profile:assigned_admin_id(email, full_name)")
+            .select("*, profiles:customer_id(email, full_name, phone)")
             .eq("id", conversationId)
             .maybeSingle<ConversationPreview>();
 
@@ -269,29 +197,17 @@ export function AdminChatInbox({
     <aside className="chat-inbox" aria-label="Customer chat inbox">
       <div className="chat-inbox-header">
         <div className="chat-inbox-title-row">
-          <h2>{isAdmin ? "Customer chats" : "Available chats"}</h2>
-        </div>
-        <div className="chat-inbox-filter" aria-label="Filter chats by assignment">
-          {assignmentFilters.map((filter) => (
-            <Link
-              aria-current={assignmentFilter === filter.value ? "page" : undefined}
-              className={assignmentFilter === filter.value ? "active" : ""}
-              href={filterHref(filter.value)}
-              key={filter.value}
-            >
-              {filter.label}
-              {unreadCounts[filter.value] > 0 ? (
-                <span className="chat-inbox-filter-count" aria-label={`${unreadCounts[filter.value]} new messages`}>
-                  {unreadCounts[filter.value]}
-                </span>
-              ) : null}
-            </Link>
-          ))}
+          <h2>Customer chats</h2>
+          {unreadCount > 0 ? (
+            <span className="chat-inbox-unread-count" aria-label={`${unreadCount} chats with new messages`}>
+              {unreadCount}
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="chat-inbox-list">
-        {filteredItems.length ? (
-          filteredItems.map((conversation) => {
+        {items.length ? (
+          items.map((conversation) => {
             const selected = conversation.id === selectedConversationId;
             const unread = unreadIds.has(conversation.id);
             const latestFromAdmin =
@@ -321,9 +237,6 @@ export function AdminChatInbox({
                   <small>
                     {latestFromAdmin ? "You: " : ""}
                     {previewText(conversation)}
-                  </small>
-                  <small className={conversation.assigned_admin_id ? "inbox-assignment" : "inbox-assignment unassigned"}>
-                    {assignedAgentName(conversation)}
                   </small>
                 </span>
                 <span className="inbox-trailing">
