@@ -1,7 +1,8 @@
 import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { LandingNav } from "@/components/landing-nav";
+import { rulesByCategory } from "@/lib/game-room-rules";
 import { createClient } from "@/lib/supabase-server";
-import type { PlatformLink, Profile } from "@/lib/types";
+import type { GameRoomRule, PlatformLink, Profile } from "@/lib/types";
 import Link from "next/link";
 
 export default async function Home() {
@@ -18,6 +19,12 @@ export default async function Home() {
     .eq("active", true)
     .order("sort_order", { ascending: true })
     .returns<PlatformLink[]>();
+  const { data: gameRules } = await supabase
+    .from("game_room_rules")
+    .select("id, category, body, sort_order, created_at")
+    .order("category", { ascending: true })
+    .order("sort_order", { ascending: true })
+    .returns<GameRoomRule[]>();
   const platformImages = (games ?? []).filter((game) => game.image_url);
   const featuredGames = [
     {
@@ -34,6 +41,7 @@ export default async function Home() {
   const marqueeRepeatCount = platformImages.length < 3 ? 12 : platformImages.length < 6 ? 8 : 5;
   const marqueeCycle = Array.from({ length: marqueeRepeatCount }, () => platformImages).flat();
   const marqueePlatforms = [...marqueeCycle, ...marqueeCycle];
+  const gameRuleColumns = rulesByCategory(gameRules);
 
   return (
     <main className="home" id="top">
@@ -63,32 +71,18 @@ export default async function Home() {
       <section className="game-rules-section" id="rules" aria-labelledby="game-rules-heading">
         <h2 id="game-rules-heading">Gameroom Rules</h2>
         <div className="game-rules-grid">
-          <article className="game-rules-column">
-            <header>
-              <h3>Redemption Policy</h3>
-            </header>
-            <ul>
-              <li>Live Agent 24/7</li>
-              <li>Redeem Hours 12pm- 11pm Eastern Time Zone</li>
-              <li>$500 max per day / until your balance is fully redeemed, (personal or business)</li>
-              <li>2 Redeems allowed per day</li>
-              <li>$Minimum redeem is $50</li>
-            </ul>
-          </article>
-          <article className="game-rules-column">
-            <header>
-              <h3>Payment Methods</h3>
-            </header>
-            <ul>
-              <li>Cashapp,</li>
-              <li>Venmo,</li>
-              <li>Paypal,</li>
-              <li>Chime</li>
-              <li>Apple Pay</li>
-              <li>BinPay (Accept major, Debit & Credit Cards)</li>
-              <li>Pandora (Accept Gpay, Min $20)</li>
-            </ul>
-          </article>
+          {gameRuleColumns.map((column) => (
+            <article className="game-rules-column" key={column.key}>
+              <header>
+                <h3>{column.title}</h3>
+              </header>
+              <ul>
+                {column.rules.map((rule) => (
+                  <li key={rule.id}>{rule.body}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
         </div>
       </section>
       <footer className="landing-footer">

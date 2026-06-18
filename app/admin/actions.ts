@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
-import type { Role } from "@/lib/types";
+import type { GameRoomRuleCategory, Role } from "@/lib/types";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -245,6 +245,94 @@ export async function saveMainFeature(formData: FormData) {
     image_url: imageUrl ? normalizeImageUrl(imageUrl) : null,
     link_url: linkUrl ? normalizePlatformUrl(linkUrl) : null
   });
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
+function ruleCategory(value: string): GameRoomRuleCategory {
+  return value === "payment" ? "payment" : "redemption";
+}
+
+export async function addGameRoomRule(formData: FormData) {
+  const supabase = await requireAdmin();
+  const category = ruleCategory(text(formData, "category"));
+  const body = text(formData, "body");
+
+  if (!body) return;
+
+  const { data: latestRule } = await supabase
+    .from("game_room_rules")
+    .select("sort_order")
+    .eq("category", category)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle<{ sort_order: number }>();
+
+  await supabase.from("game_room_rules").insert({
+    category,
+    body,
+    sort_order: (latestRule?.sort_order ?? -1) + 1
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
+export async function deleteGameRoomRule(formData: FormData) {
+  const supabase = await requireAdmin();
+  await supabase.from("game_room_rules").delete().eq("id", text(formData, "id"));
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
+export async function saveGameRoomRule(formData: FormData) {
+  const supabase = await requireAdmin();
+  const id = text(formData, "id");
+  const body = text(formData, "body");
+
+  if (!id || !body) return;
+
+  await supabase.from("game_room_rules").update({ body }).eq("id", id);
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
+export async function moveGameRoomRule(formData: FormData) {
+  const supabase = await requireAdmin();
+  const id = text(formData, "id");
+  const direction = text(formData, "direction");
+
+  if (!id || (direction !== "up" && direction !== "down")) return;
+
+  const { data: rule } = await supabase
+    .from("game_room_rules")
+    .select("id, category, sort_order")
+    .eq("id", id)
+    .maybeSingle<{ id: string; category: GameRoomRuleCategory; sort_order: number }>();
+
+  if (!rule) return;
+
+  const neighborQuery = supabase
+    .from("game_room_rules")
+    .select("id, sort_order")
+    .eq("category", rule.category)
+    .order("sort_order", { ascending: direction === "down" })
+    .limit(1);
+
+  const { data: neighbor } =
+    direction === "up"
+      ? await neighborQuery.lt("sort_order", rule.sort_order).maybeSingle<{ id: string; sort_order: number }>()
+      : await neighborQuery.gt("sort_order", rule.sort_order).maybeSingle<{ id: string; sort_order: number }>();
+
+  if (!neighbor) return;
+
+  await Promise.all([
+    supabase.from("game_room_rules").update({ sort_order: neighbor.sort_order }).eq("id", rule.id),
+    supabase.from("game_room_rules").update({ sort_order: rule.sort_order }).eq("id", neighbor.id)
+  ]);
 
   revalidatePath("/admin");
   revalidatePath("/");

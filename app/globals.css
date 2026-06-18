@@ -1887,12 +1887,14 @@ textarea {
 
 #admin-tab-links:checked ~ .admin-tab-list label[for="admin-tab-links"],
 #admin-tab-homepage:checked ~ .admin-tab-list label[for="admin-tab-homepage"],
+#admin-tab-rules:checked ~ .admin-tab-list label[for="admin-tab-rules"],
 #admin-tab-promos:checked ~ .admin-tab-list label[for="admin-tab-promos"],
 #admin-tab-subscribers:checked ~ .admin-tab-list label[for="admin-tab-subscribers"],
 #admin-tab-users:checked ~ .admin-tab-list label[for="admin-tab-users"],
 #admin-tab-chats:checked ~ .admin-tab-list label[for="admin-tab-chats"],
 #admin-tab-links:checked ~ .admin-mobile-tab-menu label[for="admin-tab-links"],
 #admin-tab-homepage:checked ~ .admin-mobile-tab-menu label[for="admin-tab-homepage"],
+#admin-tab-rules:checked ~ .admin-mobile-tab-menu label[for="admin-tab-rules"],
 #admin-tab-promos:checked ~ .admin-mobile-tab-menu label[for="admin-tab-promos"],
 #admin-tab-subscribers:checked ~ .admin-mobile-tab-menu label[for="admin-tab-subscribers"],
 #admin-tab-users:checked ~ .admin-mobile-tab-menu label[for="admin-tab-users"],
@@ -1908,6 +1910,7 @@ textarea {
 
 #admin-tab-links:checked ~ .admin-tab-panels .links-panel,
 #admin-tab-homepage:checked ~ .admin-tab-panels .homepage-panel,
+#admin-tab-rules:checked ~ .admin-tab-panels .rules-panel,
 #admin-tab-promos:checked ~ .admin-tab-panels .promos-panel,
 #admin-tab-subscribers:checked ~ .admin-tab-panels .subscribers-panel,
 #admin-tab-users:checked ~ .admin-tab-panels .users-panel,
@@ -1920,6 +1923,103 @@ textarea {
   flex-wrap: wrap;
   gap: 12px;
   margin: 16px 0;
+}
+
+.admin-rule-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.admin-rule-card {
+  background: #f7f9ff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  grid-template-rows: auto auto 1fr;
+  padding: 16px;
+}
+
+.admin-rule-card h2 {
+  margin: 0;
+}
+
+.compact-form.admin-rule-add-form {
+  align-items: stretch;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.compact-form.admin-rule-add-form input[name="body"] {
+  min-width: 0;
+  width: 100%;
+}
+
+.compact-form.admin-rule-add-form button {
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
+}
+
+.admin-rule-list {
+  align-content: start;
+  display: grid;
+  gap: 10px;
+}
+
+.admin-rule-row {
+  align-items: start;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 64px 42px;
+  padding: 10px;
+}
+
+.admin-rule-edit-form {
+  align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  height: 64px;
+}
+
+.admin-rule-edit-form textarea {
+  height: 64px;
+  min-height: 64px;
+  overflow: auto;
+  resize: none;
+}
+
+.admin-rule-edit-form button,
+.admin-rule-row-actions button {
+  align-items: center;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0;
+  width: 50px;
+}
+
+.admin-rule-row-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 42px;
+}
+
+.admin-rule-row-actions form {
+  margin: 0;
 }
 
 .admin-metric {
@@ -2306,6 +2406,7 @@ small {
   }
 
   .inline-form,
+  .admin-rule-grid,
   .table-row,
   .user-row {
     grid-template-columns: 1fr;

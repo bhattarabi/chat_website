@@ -128,6 +128,17 @@ create table public.main_feature (
   constraint main_feature_singleton check (id = 'main')
 );
 
+create table public.game_room_rules (
+  id uuid primary key default gen_random_uuid(),
+  category text not null,
+  body text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint game_room_rules_category_check check (category in ('redemption', 'payment')),
+  constraint game_room_rules_category_body_key unique (category, body)
+);
+
 create index profiles_role_idx on public.profiles(role);
 create index platform_links_active_sort_idx on public.platform_links(active, sort_order);
 create index conversations_customer_idx on public.conversations(customer_id);
@@ -139,6 +150,7 @@ create index announcements_status_created_idx on public.announcements(status, cr
 create index promo_subscribers_active_idx on public.promo_subscribers(unsubscribed_at, subscribed_at desc);
 create index promotional_emails_created_idx on public.promotional_emails(created_at desc);
 create index promotional_email_deliveries_campaign_idx on public.promotional_email_deliveries(promotional_email_id);
+create index game_room_rules_category_sort_idx on public.game_room_rules(category, sort_order);
 
 alter publication supabase_realtime add table public.messages;
 alter publication supabase_realtime add table public.conversations;
@@ -175,6 +187,10 @@ for each row execute function public.touch_updated_at();
 
 create trigger main_feature_touch_updated_at
 before update on public.main_feature
+for each row execute function public.touch_updated_at();
+
+create trigger game_room_rules_touch_updated_at
+before update on public.game_room_rules
 for each row execute function public.touch_updated_at();
 
 create trigger chat_read_states_touch_updated_at
@@ -508,6 +524,7 @@ alter table public.promo_subscribers enable row level security;
 alter table public.promotional_emails enable row level security;
 alter table public.promotional_email_deliveries enable row level security;
 alter table public.main_feature enable row level security;
+alter table public.game_room_rules enable row level security;
 
 create policy "Profiles are visible to self and admins"
 on public.profiles for select
@@ -625,6 +642,17 @@ to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
 
+create policy "Game room rules are visible"
+on public.game_room_rules for select
+to anon, authenticated
+using (true);
+
+create policy "Admins manage game room rules"
+on public.game_room_rules for all
+to authenticated
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
 grant execute on function public.start_guest_chat(text, text, text) to anon, authenticated;
 grant execute on function public.guest_chat_messages(uuid, text) to anon, authenticated;
 grant execute on function public.send_guest_message(uuid, text, text) to anon, authenticated;
@@ -633,6 +661,21 @@ grant execute on function public.ensure_customer_chat() to authenticated;
 
 insert into public.main_feature (id)
 values ('main');
+
+insert into public.game_room_rules (category, body, sort_order)
+values
+  ('redemption', 'Live Agent 24/7', 0),
+  ('redemption', 'Redeem Hours 12pm- 11pm Eastern Time Zone', 1),
+  ('redemption', '$500 max per day / until your balance is fully redeemed, (personal or business)', 2),
+  ('redemption', '2 Redeems allowed per day', 3),
+  ('redemption', '$Minimum redeem is $50', 4),
+  ('payment', 'Cashapp,', 0),
+  ('payment', 'Venmo,', 1),
+  ('payment', 'Paypal,', 2),
+  ('payment', 'Chime', 3),
+  ('payment', 'Apple Pay', 4),
+  ('payment', 'BinPay (Accept major, Debit & Credit Cards)', 5),
+  ('payment', 'Pandora (Accept Gpay, Min $20)', 6);
 
 insert into public.platform_links (title, description, url, image_url, is_featured, button_label, sort_order)
 values

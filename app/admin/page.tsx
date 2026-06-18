@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Menu, MessageCircle } from "lucide-react";
+import { ArrowDown, ArrowUp, Menu, MessageCircle, Save, Trash2 } from "lucide-react";
 import { PlatformLinksAdminTable, PromoSubscribersAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
 import { StaffAppHeader } from "@/components/staff-app-header";
+import { rulesByCategory } from "@/lib/game-room-rules";
 import { createClient } from "@/lib/supabase-server";
 import type {
   Conversation,
+  GameRoomRule,
   MainFeature,
   PlatformLink,
   Profile,
@@ -13,7 +15,11 @@ import type {
   PromotionalEmail
 } from "@/lib/types";
 import {
+  addGameRoomRule,
+  deleteGameRoomRule,
+  moveGameRoomRule,
   saveMainFeature,
+  saveGameRoomRule,
   savePlatformLink,
   savePromotionalEmail,
   sendSavedPromotionalEmail
@@ -40,6 +46,7 @@ export default async function AdminPage() {
     { data: users },
     { data: conversations },
     { data: mainFeature },
+    { data: gameRules },
     { data: promoSubscribers },
     { data: promotionalEmails }
   ] = await Promise.all([
@@ -60,6 +67,12 @@ export default async function AdminPage() {
         .eq("id", "main")
         .maybeSingle<MainFeature>(),
       supabase
+        .from("game_room_rules")
+        .select("id, category, body, sort_order, created_at")
+        .order("category", { ascending: true })
+        .order("sort_order", { ascending: true })
+        .returns<GameRoomRule[]>(),
+      supabase
         .from("promo_subscribers")
         .select("id, email, phone, subscribed_at, unsubscribed_at")
         .order("subscribed_at", { ascending: false })
@@ -73,6 +86,7 @@ export default async function AdminPage() {
         .returns<PromotionalEmail[]>()
     ]);
   const feature = mainFeature ?? { id: "main", imageUrl: null, linkUrl: null };
+  const gameRuleColumns = rulesByCategory(gameRules);
   const activePromoSubscriberCount = (promoSubscribers ?? []).filter((item) => !item.unsubscribed_at).length;
 
   return (
@@ -82,6 +96,7 @@ export default async function AdminPage() {
       <section className="admin-tabs">
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
         <input id="admin-tab-homepage" name="admin-tabs" type="radio" />
+        <input id="admin-tab-rules" name="admin-tabs" type="radio" />
         <input id="admin-tab-promos" name="admin-tabs" type="radio" />
         <input id="admin-tab-subscribers" name="admin-tabs" type="radio" />
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
@@ -93,6 +108,9 @@ export default async function AdminPage() {
           </label>
           <label htmlFor="admin-tab-homepage" role="tab">
             Homepage
+          </label>
+          <label htmlFor="admin-tab-rules" role="tab">
+            Gameroom Rules
           </label>
           <label htmlFor="admin-tab-promos" role="tab">
             Promo Emails
@@ -117,6 +135,9 @@ export default async function AdminPage() {
             </label>
             <label htmlFor="admin-tab-homepage" role="tab">
               Homepage
+            </label>
+            <label htmlFor="admin-tab-rules" role="tab">
+              Gameroom Rules
             </label>
             <label htmlFor="admin-tab-promos" role="tab">
               Promo Emails
@@ -190,6 +211,82 @@ export default async function AdminPage() {
               </label>
               <button type="submit">Save homepage</button>
             </form>
+          </section>
+
+          <section className="admin-section admin-tab-panel rules-panel">
+            <h1>Gameroom Rules</h1>
+            <div className="admin-rule-grid">
+              {gameRuleColumns.map((column) => (
+                <article className="admin-rule-card" key={column.key}>
+                  <h2>{column.title}</h2>
+                  <form action={addGameRoomRule} className="compact-form admin-rule-add-form">
+                    <input name="category" type="hidden" value={column.key} />
+                    <input name="body" placeholder={`Add ${column.title.toLowerCase()}`} required />
+                    <button type="submit">Add</button>
+                  </form>
+                  <div className="admin-rule-list">
+                    {column.rules.map((rule, index) => (
+                      <div className="admin-rule-row" key={rule.id}>
+                        <form action={saveGameRoomRule} className="admin-rule-edit-form" id={`save-rule-${rule.id}`}>
+                          <input name="id" type="hidden" value={rule.id} />
+                          <textarea
+                            aria-label={`${column.title} rule`}
+                            name="body"
+                            defaultValue={rule.body}
+                            rows={2}
+                            required
+                          />
+                        </form>
+                        <div className="admin-rule-row-actions">
+                          <form action={moveGameRoomRule}>
+                            <input name="id" type="hidden" value={rule.id} />
+                            <input name="direction" type="hidden" value="up" />
+                            <button
+                              aria-label="Move rule up"
+                              title="Move rule up"
+                              type="submit"
+                            >
+                              <ArrowUp aria-hidden="true" size={16} />
+                            </button>
+                          </form>
+                          <form action={moveGameRoomRule}>
+                            <input name="id" type="hidden" value={rule.id} />
+                            <input name="direction" type="hidden" value="down" />
+                            <button
+                              aria-label="Move rule down"
+                              title="Move rule down"
+                              type="submit"
+                            >
+                              <ArrowDown aria-hidden="true" size={16} />
+                            </button>
+                          </form>
+                          <button
+                            aria-label="Save rule"
+                            form={`save-rule-${rule.id}`}
+                            title="Save rule"
+                            type="submit"
+                            disabled={rule.id.startsWith("default-")}
+                          >
+                            <Save aria-hidden="true" size={16} />
+                          </button>
+                          <form action={deleteGameRoomRule}>
+                            <input name="id" type="hidden" value={rule.id} />
+                            <button
+                              aria-label="Remove rule"
+                              title="Remove rule"
+                              type="submit"
+                              disabled={rule.id.startsWith("default-")}
+                            >
+                              <Trash2 aria-hidden="true" size={16} />
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
           </section>
 
           <section className="admin-section admin-tab-panel promos-panel">

@@ -55,6 +55,16 @@ export type MainFeature = {
   linkUrl: string | null;
 };
 
+export type GameRoomRuleCategory = "redemption" | "payment";
+
+export type GameRoomRule = {
+  id: string;
+  category: GameRoomRuleCategory;
+  body: string;
+  sort_order: number;
+  created_at: string;
+};
+
 export type Conversation = {
   id: string;
   customer_id: string | null;
