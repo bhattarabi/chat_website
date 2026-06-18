@@ -1,4 +1,3 @@
-import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { subscribeToPromos } from "@/app/actions";
 import { LandingNav } from "@/components/landing-nav";
 import { createClient } from "@/lib/supabase-server";
@@ -53,11 +52,15 @@ export default async function Home({ searchParams }: HomeProps) {
           </p>
           <p>Live Agent 24/7</p>
           <p className="hero-highlight">Fast Cash Out!</p>
+          <div className="hero-actions">
+            <Link className="button hero-button-secondary" href={user ? "/chat" : "/auth"}>
+              Talk To Host
+            </Link>
+            <Link className="button hero-button-primary" href="/auth">
+              Sign Up Now
+            </Link>
+          </div>
         </div>
-        <HeroPlatformCarousel
-          isSignedIn={Boolean(user)}
-          platforms={(games ?? []).filter((game) => game.isFeatured)}
-        />
       </section>
       {platformImages.length > 0 ? (
         <section className="platform-image-strip" aria-label="Platform games">
