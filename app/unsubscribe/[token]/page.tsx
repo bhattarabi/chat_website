@@ -15,12 +15,12 @@ export default async function UnsubscribePage({ params }: UnsubscribePageProps) 
     <main className="auth-shell">
       <section className="auth-panel narrow form-card">
         <Link href="/" className="brand small">
-          Game Links Galore
+          Raven Jackpots
         </Link>
         <h1>{unsubscribed ? "Unsubscribed" : "Link not found"}</h1>
         <p>
           {unsubscribed
-            ? "You will no longer receive promotional emails from Game Links Galore."
+            ? "You will no longer receive promotional emails from Raven Jackpots."
             : "This unsubscribe link is invalid or has already been removed."}
         </p>
         <Link className="button" href="/">

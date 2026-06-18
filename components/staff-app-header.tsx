@@ -32,7 +32,7 @@ export function StaffAppHeader({ showAdmin = false }: Props) {
         <nav aria-label="Staff navigation">{navItems}</nav>
       </details>
       <Link href="/" className="brand">
-        Game Links Galore
+        Raven Jackpots
       </Link>
       <nav className="staff-desktop-nav" aria-label="Staff navigation">
         {navItems}

@@ -20,7 +20,7 @@ export default async function UpdatePasswordPage({ searchParams }: Props) {
     <main className="auth-shell">
       <section className="auth-panel narrow">
         <Link href="/" className="brand small">
-          Game Links Galore
+          Raven Jackpots
         </Link>
         <h1>Reset password</h1>
         <p>Enter a new password for your account.</p>

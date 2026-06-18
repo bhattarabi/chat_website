@@ -6,7 +6,7 @@ import type { Conversation, Message, Profile } from "@/lib/types";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Game Links Galore",
+  title: "Raven Jackpots",
   description: "Mobile-friendly customer portal with Supabase auth and realtime chat."
 };
 

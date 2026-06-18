@@ -29,7 +29,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     <main className="app-shell">
       <header className="app-header">
         <Link href="/" className="brand">
-          Game Links Galore
+          Raven Jackpots
         </Link>
         <nav>
           {profile?.role === "admin" ? (

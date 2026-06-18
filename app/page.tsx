@@ -182,8 +182,8 @@ export default async function Home({ searchParams }: HomeProps) {
               </div>
             </div>
             <div className="landing-footer-brand">
-              <img src="/site-logo.svg" alt="Game Links Galore" />
-              <strong>Game Links Galore</strong>
+              <img src="/site-logo.svg" alt="Raven Jackpots" />
+              <strong>Raven Jackpots</strong>
             </div>
           </div>
           <form action={subscribeToPromos} className="footer-subscribe" id="subscribe">
@@ -199,7 +199,7 @@ export default async function Home({ searchParams }: HomeProps) {
           </form>
         </div>
         <div className="landing-footer-bottom">
-          <span>Copyright Game Links Galore | Designed for Game Links Galore | Powered by Game Links Galore</span>
+          <span>Copyright Raven Jackpots | Designed for Raven Jackpots | Powered by Raven Jackpots</span>
         </div>
       </footer>
     </main>
