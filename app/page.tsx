@@ -99,13 +99,10 @@ export default async function Home() {
               <div className="footer-legal-group">
                 <h2>Legal Pages</h2>
                 <nav aria-label="Legal pages">
-                  <Link href="/privacy">Privacy Policy</Link>
-                  <Link href="/terms">Terms & Conditions</Link>
+                  <Link href="#">Privacy Policy</Link>
+                  <Link href="#">Terms & Conditions</Link>
                 </nav>
               </div>
-            </div>
-            <div className="landing-footer-brand">
-              <strong>Raven Jackpots</strong>
             </div>
           </div>
         </div>
