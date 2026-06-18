@@ -30,7 +30,18 @@ export default async function Home({ searchParams }: HomeProps) {
     .eq("id", "main")
     .maybeSingle<MainFeature>();
   const platformImages = (games ?? []).filter((game) => game.image_url);
-  const featuredGames = (games ?? []).filter((game) => game.isFeatured);
+  const featuredGames = [
+    {
+      id: "hypo-slot-image",
+      title: "Hypo slot game",
+      image_url: "/hero-image1.png"
+    },
+    {
+      id: "hypo-slot-image",
+      title: "Hypo slot game",
+      image_url: "/hero-image-2.png"
+    }
+  ];
   const marqueeRepeatCount = platformImages.length < 3 ? 12 : platformImages.length < 6 ? 8 : 5;
   const marqueeCycle = Array.from({ length: marqueeRepeatCount }, () => platformImages).flat();
   const marqueePlatforms = [...marqueeCycle, ...marqueeCycle];
