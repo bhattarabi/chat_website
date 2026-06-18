@@ -302,11 +302,18 @@ button:disabled {
 .hero-platform-panel {
   align-items: center;
   align-self: stretch;
-  display: grid;
-  gap: 18px;
-  grid-template-rows: auto minmax(0, 1fr);
+  display: flex;
   justify-items: center;
+  justify-content: center;
   min-width: 0;
+  position: relative;
+}
+
+.hero-platform-panel .hero-actions {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
 }
 
 .hero-platform-frame {
@@ -2291,7 +2298,6 @@ small {
 
 @media (max-width: 860px) {
   .home-hero {
-    align-content: start;
     grid-template-columns: 1fr;
     min-height: auto;
     padding-bottom: 34px;
@@ -2305,8 +2311,12 @@ small {
 
   .hero-platform-panel {
     align-self: center;
-    gap: 16px;
-    order: -1;
+    display: grid;
+    gap: 20px;
+  }
+
+  .hero-platform-panel .hero-actions {
+    position: static;
   }
 
   .how-to-play-section {
@@ -2538,16 +2548,13 @@ small {
 
 @media (max-width: 560px) {
   .home-hero {
-    gap: 16px;
-    padding: 18px 16px 24px;
+    gap: 22px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .hero-copy-column {
-    gap: 8px;
-  }
-
-  .hero-platform-frame {
-    max-width: min(100%, 430px);
+    gap: 10px;
   }
 
   .hero-actions .button {

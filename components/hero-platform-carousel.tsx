@@ -32,14 +32,6 @@ export function HeroPlatformCarousel({ isSignedIn, platforms }: Props) {
 
   return (
     <div className="hero-platform-panel">
-      <div className="hero-actions">
-        <Link className="button hero-button-secondary" href={isSignedIn ? "/chat" : "/auth"}>
-          Talk To Host
-        </Link>
-        <Link className="button hero-button-primary" href="/auth">
-          Sign Up Now
-        </Link>
-      </div>
       <div className="hero-platform-frame">
         {activeSlide?.image_url ? (
           <>
@@ -62,6 +54,14 @@ export function HeroPlatformCarousel({ isSignedIn, platforms }: Props) {
         ) : (
           <span>No games yet</span>
         )}
+      </div>
+      <div className="hero-actions">
+        <Link className="button hero-button-secondary" href={isSignedIn ? "/chat" : "/auth"}>
+          Talk To Host
+        </Link>
+        <Link className="button hero-button-primary" href="/auth">
+          Sign Up Now
+        </Link>
       </div>
     </div>
   );
