@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { signOut } from "@/app/auth/actions";
 
 type Props = {
   active: "home" | "platforms";
@@ -7,7 +8,7 @@ type Props = {
   isSignedIn: boolean;
 };
 
-export function LandingNav({ active }: Props) {
+export function LandingNav({ active, isAdmin = false, isSignedIn }: Props) {
   return (
     <nav className="topbar">
       <Link className="brand home-brand" href="/" aria-label="Raven home">
@@ -30,15 +31,34 @@ export function LandingNav({ active }: Props) {
       </div>
       <div className="home-auth-nav">
         <div className="home-nav-actions">
-          <Link className="button" href="/auth">
-            Login
-          </Link>
-          <a className="social-icon-link" href="#" aria-label="Telegram" title="Telegram">
-            <TelegramIcon />
-          </a>
-          <a className="social-icon-link" href="#" aria-label="Facebook" title="Facebook">
-            <FacebookIcon />
-          </a>
+          {isSignedIn ? (
+            <>
+              {isAdmin ? (
+                <Link className="button" href="/admin">
+                  Admin
+                </Link>
+              ) : (
+                <Link className="button" href="/dashboard">
+                  Account
+                </Link>
+              )}
+              <form action={signOut}>
+                <button type="submit">Logout</button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link className="button" href="/auth">
+                Login
+              </Link>
+              <a className="social-icon-link" href="#" aria-label="Telegram" title="Telegram">
+                <TelegramIcon />
+              </a>
+              <a className="social-icon-link" href="#" aria-label="Facebook" title="Facebook">
+                <FacebookIcon />
+              </a>
+            </>
+          )}
         </div>
       </div>
     </nav>

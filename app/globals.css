@@ -916,6 +916,10 @@ button:disabled {
   justify-content: flex-end;
 }
 
+.home-auth-nav form {
+  display: contents;
+}
+
 .home-auth-nav .button,
 .home-auth-nav button {
   background: #050805;
@@ -2814,7 +2818,7 @@ small {
   .home-auth-nav .button,
   .home-auth-nav button {
     min-height: 40px;
-    min-width: 72px;
+    min-width: 0;
     padding-left: 10px;
     padding-right: 10px;
   }
@@ -3045,8 +3049,8 @@ small {
 
   .home-auth-nav .button,
   .home-auth-nav button {
-    font-size: 0.9rem;
-    min-width: 64px;
+    font-size: 0.82rem;
+    min-width: 0;
     padding-left: 8px;
     padding-right: 8px;
   }
