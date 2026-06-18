@@ -2,7 +2,7 @@ import { subscribeToPromos } from "@/app/actions";
 import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { LandingNav } from "@/components/landing-nav";
 import { createClient } from "@/lib/supabase-server";
-import type { MainFeature, PlatformLink, Profile } from "@/lib/types";
+import type { PlatformLink, Profile } from "@/lib/types";
 import Link from "next/link";
 
 type HomeProps = {
@@ -24,11 +24,6 @@ export default async function Home({ searchParams }: HomeProps) {
     .eq("active", true)
     .order("sort_order", { ascending: true })
     .returns<PlatformLink[]>();
-  const { data: mainFeature } = await supabase
-    .from("main_feature")
-    .select("id, imageUrl:image_url, linkUrl:link_url")
-    .eq("id", "main")
-    .maybeSingle<MainFeature>();
   const platformImages = (games ?? []).filter((game) => game.image_url);
   const featuredGames = [
     {
@@ -79,58 +74,6 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </section>
       ) : null}
-      <section className="how-to-play-section" aria-labelledby="how-to-play-heading">
-        <div className="how-to-play-copy">
-          <h2 id="how-to-play-heading">How To Play</h2>
-          <ol className="how-to-play-steps">
-            <li>
-              <span>01</span>
-              <div>
-                <h3>Sign Up</h3>
-                <p>It only takes 2 mins sign up. If you have any questions don't hesitate to message us.</p>
-              </div>
-            </li>
-            <li>
-              <span>02</span>
-              <div>
-                <h3>Message Us</h3>
-                <p>
-                  Meet and greet is the best way to know us. Message us, ask us about our game room rule
-                  and cash out process.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span>03</span>
-              <div>
-                <h3>Play, Win & Redeem</h3>
-                <p>Our hosts will create your platform ID and password.</p>
-              </div>
-            </li>
-          </ol>
-          <div className="how-to-play-actions">
-            <Link className="button hero-button-secondary" href={user ? "/chat" : "/auth"}>
-              Talk To Host
-            </Link>
-            <Link className="button hero-button-primary" href="/auth">
-              Sign Up Now
-            </Link>
-          </div>
-        </div>
-        <div className="how-to-play-card">
-          {mainFeature?.imageUrl ? (
-            mainFeature.linkUrl ? (
-              <a href={mainFeature.linkUrl} target="_blank" rel="noreferrer">
-                <img src={mainFeature.imageUrl} alt="Main feature" />
-              </a>
-            ) : (
-              <img src={mainFeature.imageUrl} alt="Main feature" />
-            )
-          ) : (
-            <span>No MainFeature selected</span>
-          )}
-        </div>
-      </section>
       <section className="game-rules-section" id="rules" aria-labelledby="game-rules-heading">
         <h2 id="game-rules-heading">Gameroom Rules</h2>
         <div className="game-rules-grid">
