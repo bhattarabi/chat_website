@@ -207,6 +207,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
         <Modal title="Edit Platform Link" onClose={() => setEditing(null)}>
           <form action={savePlatformLink} className="modal-form">
             <input type="hidden" name="id" value={editing.id} />
+            <input type="hidden" name="existing_image_url" value={editing.image_url ?? ""} />
             <label>
               Title
               <input name="title" defaultValue={editing.title} required />
@@ -222,13 +223,9 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
               />
             </label>
             <label>
-              Image URL
-              <input
-                name="image_url"
-                defaultValue={editing.image_url ?? ""}
-                pattern="https?://.+|www\..+"
-                title="Enter an image URL starting with http://, https://, or www."
-              />
+              Image
+              <input name="image_file" type="file" accept="image/*" />
+              {editing.image_url ? <small>Leave empty to keep the current image.</small> : null}
             </label>
             <label className="check-row">
               <input name="isFeatured" type="checkbox" defaultChecked={editing.isFeatured} />

@@ -2021,6 +2021,13 @@ textarea {
   width: auto;
 }
 
+.file-input-row input[type="file"],
+.modal-form input[type="file"] {
+  background: #f7f9ff;
+  cursor: pointer;
+  padding: 10px;
+}
+
 .data-table-wrap {
   margin-top: 16px;
   overflow-x: auto;

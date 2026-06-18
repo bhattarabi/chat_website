@@ -37,6 +37,50 @@ function normalizeImageUrl(url: string) {
   return normalizePlatformUrl(url);
 }
 
+function platformImageExtension(file: File) {
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  if (extension && /^[a-z0-9]+$/.test(extension)) return extension;
+
+  switch (file.type) {
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    case "image/gif":
+      return "gif";
+    default:
+      return "bin";
+  }
+}
+
+async function uploadPlatformImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  formData: FormData
+) {
+  const file = formData.get("image_file");
+  if (!(file instanceof File) || file.size === 0) {
+    const imageUrl = text(formData, "image_url") || text(formData, "existing_image_url");
+    return imageUrl ? normalizeImageUrl(imageUrl) : null;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Platform images must be image files.");
+  }
+
+  const path = `${crypto.randomUUID()}.${platformImageExtension(file)}`;
+  const { error } = await supabase.storage.from("platform-images").upload(path, file, {
+    contentType: file.type,
+    upsert: false
+  });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabase.storage.from("platform-images").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 function plainTextToHtml(body: string) {
   return body
     .split(/\n{2,}/)
@@ -160,11 +204,12 @@ async function sendPromotionalEmail(supabase: Awaited<ReturnType<typeof createCl
 export async function savePlatformLink(formData: FormData) {
   const supabase = await requireAdmin();
   const id = text(formData, "id");
+  const imageUrl = await uploadPlatformImage(supabase, formData);
   const payload = {
     title: text(formData, "title"),
     description: text(formData, "description") || null,
     url: normalizePlatformUrl(text(formData, "url")),
-    image_url: text(formData, "image_url") ? normalizeImageUrl(text(formData, "image_url")) : null,
+    image_url: imageUrl,
     is_featured: formData.get("isFeatured") === "on",
     button_label: text(formData, "button_label") || "Open",
     sort_order: Number(text(formData, "sort_order") || 0),

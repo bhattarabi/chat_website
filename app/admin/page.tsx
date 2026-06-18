@@ -145,12 +145,10 @@ export default async function AdminPage() {
                 required
                 title="Enter a URL starting with http://, https://, or www."
               />
-              <input
-                name="image_url"
-                pattern="https?://.+|www\..+"
-                placeholder="Image URL"
-                title="Enter an image URL starting with http://, https://, or www."
-              />
+              <label className="file-input-row">
+                Image
+                <input name="image_file" type="file" accept="image/*" />
+              </label>
               <input name="description" placeholder="Description" />
               <input name="button_label" placeholder="Button" />
               <input name="sort_order" type="number" placeholder="Order" />
