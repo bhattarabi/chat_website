@@ -2,11 +2,12 @@ import Link from "next/link";
 import { resetPassword, signIn, signUp } from "./actions";
 
 type Props = {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ message?: string; tab?: string }>;
 };
 
 export default async function AuthPage({ searchParams }: Props) {
-  const { message } = await searchParams;
+  const { message, tab } = await searchParams;
+  const shouldShowSignUp = tab === "signup";
 
   return (
     <main className="auth-shell">
@@ -19,8 +20,8 @@ export default async function AuthPage({ searchParams }: Props) {
         </div>
         {message ? <div className="notice">{message}</div> : null}
         <div className="auth-tabs">
-          <input id="auth-tab-signin" name="auth-tabs" type="radio" defaultChecked />
-          <input id="auth-tab-signup" name="auth-tabs" type="radio" />
+          <input id="auth-tab-signin" name="auth-tabs" type="radio" defaultChecked={!shouldShowSignUp} />
+          <input id="auth-tab-signup" name="auth-tabs" type="radio" defaultChecked={shouldShowSignUp} />
           <div className="auth-tab-list" role="tablist" aria-label="Customer access">
             <label htmlFor="auth-tab-signin" role="tab">
               Login
