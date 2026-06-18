@@ -282,7 +282,7 @@ button:disabled {
   color: white;
   display: grid;
   font-size: clamp(1.35rem, 2.25vw, 2rem);
-  font-weight: 900;
+  font-weight: 500;
   line-height: 1.22;
   margin: 0;
   text-shadow:
@@ -2549,7 +2549,7 @@ small {
 @media (max-width: 560px) {
   .home-hero {
     gap: 14px;
-    padding: 14px 12px 24px;
+    padding: 14px 12px;
     width: 100%;
   }
 
@@ -2567,29 +2567,31 @@ small {
   }
 
   .hero-copy-column h1 {
-    font-size: clamp(2rem, 9vw, 2.85rem);
+    font-size: clamp(2.25rem, 10.5vw, 3.25rem);
     line-height: 0.88;
     max-width: 16ch;
     white-space: normal;
   }
 
   .hero-copy-column p {
-    font-size: clamp(1rem, 4.2vw, 1.35rem);
+    font-size: clamp(1.15rem, 4.8vw, 1.55rem);
     line-height: 1.08;
   }
 
   .hero-highlight {
-    font-size: clamp(1.35rem, 5vw, 1.7rem);
+    font-size: clamp(1.55rem, 5.8vw, 1.95rem);
   }
 
   .hero-platform-panel {
-    gap: 14px;
+    gap: 22px;
     width: 100%;
   }
 
   .hero-platform-frame {
+    margin-left: -12px;
+    margin-right: -12px;
     max-width: none;
-    width: min(100vw - 24px, 540px);
+    width: min(100vw, 560px);
   }
 
   .hero-actions {
@@ -2651,7 +2653,7 @@ small {
   }
 
   .platform-image-track {
-    animation-duration: 520s;
+    animation-duration: 720s;
     will-change: transform;
   }
 
