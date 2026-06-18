@@ -1888,15 +1888,11 @@ textarea {
 #admin-tab-links:checked ~ .admin-tab-list label[for="admin-tab-links"],
 #admin-tab-homepage:checked ~ .admin-tab-list label[for="admin-tab-homepage"],
 #admin-tab-rules:checked ~ .admin-tab-list label[for="admin-tab-rules"],
-#admin-tab-promos:checked ~ .admin-tab-list label[for="admin-tab-promos"],
-#admin-tab-subscribers:checked ~ .admin-tab-list label[for="admin-tab-subscribers"],
 #admin-tab-users:checked ~ .admin-tab-list label[for="admin-tab-users"],
 #admin-tab-chats:checked ~ .admin-tab-list label[for="admin-tab-chats"],
 #admin-tab-links:checked ~ .admin-mobile-tab-menu label[for="admin-tab-links"],
 #admin-tab-homepage:checked ~ .admin-mobile-tab-menu label[for="admin-tab-homepage"],
 #admin-tab-rules:checked ~ .admin-mobile-tab-menu label[for="admin-tab-rules"],
-#admin-tab-promos:checked ~ .admin-mobile-tab-menu label[for="admin-tab-promos"],
-#admin-tab-subscribers:checked ~ .admin-mobile-tab-menu label[for="admin-tab-subscribers"],
 #admin-tab-users:checked ~ .admin-mobile-tab-menu label[for="admin-tab-users"],
 #admin-tab-chats:checked ~ .admin-mobile-tab-menu label[for="admin-tab-chats"] {
   background: var(--accent);
@@ -1911,8 +1907,6 @@ textarea {
 #admin-tab-links:checked ~ .admin-tab-panels .links-panel,
 #admin-tab-homepage:checked ~ .admin-tab-panels .homepage-panel,
 #admin-tab-rules:checked ~ .admin-tab-panels .rules-panel,
-#admin-tab-promos:checked ~ .admin-tab-panels .promos-panel,
-#admin-tab-subscribers:checked ~ .admin-tab-panels .subscribers-panel,
 #admin-tab-users:checked ~ .admin-tab-panels .users-panel,
 #admin-tab-chats:checked ~ .admin-tab-panels .chats-panel {
   display: block;

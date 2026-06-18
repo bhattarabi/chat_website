@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowDown, ArrowUp, Menu, MessageCircle, Save, Trash2 } from "lucide-react";
-import { PlatformLinksAdminTable, PromoSubscribersAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
+import { PlatformLinksAdminTable, UsersAdminTable } from "@/components/admin-data-tables";
 import { StaffAppHeader } from "@/components/staff-app-header";
 import { rulesByCategory } from "@/lib/game-room-rules";
 import { createClient } from "@/lib/supabase-server";
@@ -10,9 +10,7 @@ import type {
   GameRoomRule,
   MainFeature,
   PlatformLink,
-  Profile,
-  PromoSubscriber,
-  PromotionalEmail
+  Profile
 } from "@/lib/types";
 import {
   addGameRoomRule,
@@ -20,9 +18,7 @@ import {
   moveGameRoomRule,
   saveMainFeature,
   saveGameRoomRule,
-  savePlatformLink,
-  savePromotionalEmail,
-  sendSavedPromotionalEmail
+  savePlatformLink
 } from "./actions";
 
 export default async function AdminPage() {
@@ -46,9 +42,7 @@ export default async function AdminPage() {
     { data: users },
     { data: conversations },
     { data: mainFeature },
-    { data: gameRules },
-    { data: promoSubscribers },
-    { data: promotionalEmails }
+    { data: gameRules }
   ] = await Promise.all([
       supabase
         .from("platform_links")
@@ -71,23 +65,10 @@ export default async function AdminPage() {
         .select("id, category, body, sort_order, created_at")
         .order("category", { ascending: true })
         .order("sort_order", { ascending: true })
-        .returns<GameRoomRule[]>(),
-      supabase
-        .from("promo_subscribers")
-        .select("id, email, phone, subscribed_at, unsubscribed_at")
-        .order("subscribed_at", { ascending: false })
-        .limit(200)
-        .returns<PromoSubscriber[]>(),
-      supabase
-        .from("promotional_emails")
-        .select("id, subject, body, status, recipient_count, sent_count, send_error, sent_at, created_at")
-        .order("created_at", { ascending: false })
-        .limit(12)
-        .returns<PromotionalEmail[]>()
+        .returns<GameRoomRule[]>()
     ]);
   const feature = mainFeature ?? { id: "main", imageUrl: null, linkUrl: null };
   const gameRuleColumns = rulesByCategory(gameRules);
-  const activePromoSubscriberCount = (promoSubscribers ?? []).filter((item) => !item.unsubscribed_at).length;
 
   return (
     <main className="app-shell">
@@ -97,8 +78,6 @@ export default async function AdminPage() {
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
         <input id="admin-tab-homepage" name="admin-tabs" type="radio" />
         <input id="admin-tab-rules" name="admin-tabs" type="radio" />
-        <input id="admin-tab-promos" name="admin-tabs" type="radio" />
-        <input id="admin-tab-subscribers" name="admin-tabs" type="radio" />
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
         <input id="admin-tab-chats" name="admin-tabs" type="radio" />
 
@@ -111,12 +90,6 @@ export default async function AdminPage() {
           </label>
           <label htmlFor="admin-tab-rules" role="tab">
             Gameroom Rules
-          </label>
-          <label htmlFor="admin-tab-promos" role="tab">
-            Promo Emails
-          </label>
-          <label htmlFor="admin-tab-subscribers" role="tab">
-            Subscribers
           </label>
           <label htmlFor="admin-tab-users" role="tab">
             Users
@@ -138,12 +111,6 @@ export default async function AdminPage() {
             </label>
             <label htmlFor="admin-tab-rules" role="tab">
               Gameroom Rules
-            </label>
-            <label htmlFor="admin-tab-promos" role="tab">
-              Promo Emails
-            </label>
-            <label htmlFor="admin-tab-subscribers" role="tab">
-              Subscribers
             </label>
             <label htmlFor="admin-tab-users" role="tab">
               Users
@@ -287,71 +254,6 @@ export default async function AdminPage() {
                 </article>
               ))}
             </div>
-          </section>
-
-          <section className="admin-section admin-tab-panel promos-panel">
-            <h1>Promo Emails</h1>
-            <div className="admin-metric-row">
-              <div className="admin-metric">
-                <span>Active subscribers</span>
-                <strong>{activePromoSubscriberCount}</strong>
-              </div>
-              <div className="admin-metric">
-                <span>Total collected</span>
-                <strong>{promoSubscribers?.length ?? 0}</strong>
-              </div>
-            </div>
-            <form action={savePromotionalEmail} className="panel-form">
-              <input name="subject" placeholder="Email subject" required />
-              <textarea name="body" placeholder="Promotional email text" rows={7} required />
-              <div className="row-actions">
-                <button name="intent" type="submit" value="draft">
-                  Save draft
-                </button>
-                <button name="intent" type="submit" value="send">
-                  Save and send
-                </button>
-              </div>
-            </form>
-
-            <div className="promo-admin-grid">
-              <h2>Recent Campaigns</h2>
-              {(promotionalEmails ?? []).map((item) => (
-                <article className="notice-item" key={item.id}>
-                  <div className="notice-heading-row">
-                    <h3>{item.subject}</h3>
-                    <small>{item.status}</small>
-                  </div>
-                  <p>{item.body}</p>
-                  <small>
-                    {item.sent_count}/{item.recipient_count} sent
-                    {item.sent_at ? ` on ${new Date(item.sent_at).toLocaleString()}` : ""}
-                  </small>
-                  {item.send_error ? <p className="form-message error">{item.send_error}</p> : null}
-                  {item.status !== "sending" ? (
-                    <form action={sendSavedPromotionalEmail} className="compact-form">
-                      <input name="id" type="hidden" value={item.id} />
-                      <button type="submit">Send to subscribers</button>
-                    </form>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="admin-section admin-tab-panel subscribers-panel">
-            <h1>Subscribers</h1>
-            <div className="admin-metric-row">
-              <div className="admin-metric">
-                <span>Active subscribers</span>
-                <strong>{activePromoSubscriberCount}</strong>
-              </div>
-              <div className="admin-metric">
-                <span>Total collected</span>
-                <strong>{promoSubscribers?.length ?? 0}</strong>
-              </div>
-            </div>
-            <PromoSubscribersAdminTable subscribers={promoSubscribers ?? []} />
           </section>
 
           <section className="admin-section admin-tab-panel users-panel">
