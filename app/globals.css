@@ -913,13 +913,17 @@ button:disabled {
 }
 
 .home-brand {
-  color: white;
-  font-size: 1.35rem;
-  font-weight: 900;
-  line-height: 0.82;
-  max-width: 122px;
-  text-shadow: 0 2px 0 rgba(43, 216, 111, 0.35);
-  text-transform: uppercase;
+  align-items: center;
+  display: inline-flex;
+  max-width: 150px;
+}
+
+.home-brand img {
+  display: block;
+  height: auto;
+  max-height: 60px;
+  max-width: 100%;
+  width: auto;
 }
 
 .home-main-nav {
@@ -965,6 +969,30 @@ button:disabled {
   flex-wrap: nowrap;
   gap: 10px;
   justify-content: flex-end;
+}
+
+.social-icon-link {
+  align-items: center;
+  background: #050805;
+  border: 1px solid rgba(172, 255, 110, 0.32);
+  border-radius: 50%;
+  color: white;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+  width: 44px;
+}
+
+.social-icon-link:hover {
+  background: #111a0d;
+  border-color: rgba(217, 255, 24, 0.55);
+  color: #d9ff18;
+  transform: translateY(-1px);
 }
 
 .app-header nav {
@@ -2647,9 +2675,12 @@ small {
   }
 
   .home-brand {
-    font-size: 1rem;
     grid-area: brand;
     max-width: 92px;
+  }
+
+  .home-brand img {
+    max-height: 38px;
   }
 
   .home-main-nav {
@@ -2671,14 +2702,20 @@ small {
 
   .home-auth-nav .button,
   .home-auth-nav button {
-    min-width: 94px;
-    padding-left: 12px;
-    padding-right: 12px;
+    min-height: 40px;
+    min-width: 72px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .social-icon-link {
+    height: 38px;
+    width: 38px;
   }
 
   .home-nav-actions {
     flex-wrap: nowrap;
-    gap: 6px;
+    gap: 5px;
     justify-content: flex-end;
   }
 
@@ -2863,6 +2900,43 @@ small {
     border-left: 0;
     border-radius: 8px 8px 0 0;
     border-right: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .home-brand {
+    max-width: 78px;
+  }
+
+  .home-brand img {
+    max-height: 32px;
+  }
+
+  .home-main-nav {
+    gap: 14px;
+  }
+
+  .home-auth-nav .button,
+  .home-auth-nav button {
+    font-size: 0.9rem;
+    min-width: 64px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .social-icon-link {
+    height: 34px;
+    width: 34px;
+  }
+
+  .social-icon-link svg {
+    height: 19px;
+    width: 19px;
   }
 }
 
