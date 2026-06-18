@@ -1,4 +1,5 @@
 import { subscribeToPromos } from "@/app/actions";
+import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { LandingNav } from "@/components/landing-nav";
 import { createClient } from "@/lib/supabase-server";
 import type { MainFeature, PlatformLink, Profile } from "@/lib/types";
@@ -29,6 +30,7 @@ export default async function Home({ searchParams }: HomeProps) {
     .eq("id", "main")
     .maybeSingle<MainFeature>();
   const platformImages = (games ?? []).filter((game) => game.image_url);
+  const featuredGames = (games ?? []).filter((game) => game.isFeatured);
   const marqueeRepeatCount = platformImages.length < 3 ? 12 : platformImages.length < 6 ? 8 : 5;
   const marqueeCycle = Array.from({ length: marqueeRepeatCount }, () => platformImages).flat();
   const marqueePlatforms = [...marqueeCycle, ...marqueeCycle];
@@ -52,15 +54,8 @@ export default async function Home({ searchParams }: HomeProps) {
           </p>
           <p>Live Agent 24/7</p>
           <p className="hero-highlight">Fast Cash Out!</p>
-          <div className="hero-actions">
-            <Link className="button hero-button-secondary" href={user ? "/chat" : "/auth"}>
-              Talk To Host
-            </Link>
-            <Link className="button hero-button-primary" href="/auth">
-              Sign Up Now
-            </Link>
-          </div>
         </div>
+        <HeroPlatformCarousel isSignedIn={Boolean(user)} platforms={featuredGames} />
       </section>
       {platformImages.length > 0 ? (
         <section className="platform-image-strip" aria-label="Platform games">

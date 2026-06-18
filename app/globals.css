@@ -229,7 +229,7 @@ button:disabled {
   color: white;
   display: grid;
   gap: 28px;
-  grid-template-columns: minmax(250px, 1fr);
+  grid-template-columns: minmax(250px, 1fr) minmax(280px, 1.1fr);
   margin: 0 auto;
   max-width: 1180px;
   min-height: 540px;
@@ -301,30 +301,69 @@ button:disabled {
 
 .hero-platform-panel {
   align-items: center;
-  display: grid;
-  gap: 20px;
+  align-self: stretch;
+  display: flex;
   justify-items: center;
+  justify-content: center;
   min-width: 0;
+  position: relative;
+}
+
+.hero-platform-panel .hero-actions {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
 }
 
 .hero-platform-frame {
   align-items: center;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1;
   display: flex;
+  isolation: isolate;
   justify-content: center;
-  max-width: 470px;
-  min-height: 319px;
+  max-width: 380px;
   overflow: hidden;
   position: relative;
-  width: 100%;
+  width: min(100%, 380px);
+}
+
+.hero-platform-frame::before {
+  background:
+    radial-gradient(ellipse at center, rgba(230, 255, 118, 0.2), transparent 58%),
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.16), transparent 68%);
+  content: "";
+  inset: 8%;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
 }
 
 .hero-platform-frame img {
   display: block;
   filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.3));
-  max-height: 100%;
-  max-width: 100%;
-  object-fit: contain;
+  height: 100%;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 8%,
+    #000 20%,
+    #000 80%,
+    rgba(0, 0, 0, 0.35) 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 8%,
+    #000 20%,
+    #000 80%,
+    rgba(0, 0, 0, 0.35) 92%,
+    transparent 100%
+  );
+  object-fit: cover;
+  object-position: center center;
+  width: 100%;
 }
 
 .hero-platform-slide {
@@ -460,8 +499,8 @@ button:disabled {
   border: 1px solid rgba(43, 216, 111, 0.7);
   border-radius: 6px;
   box-shadow: 0 12px 18px rgba(43, 216, 111, 0.36);
-  flex: 0 0 158px;
-  height: 126px;
+  aspect-ratio: 1;
+  flex: 0 0 154px;
   margin-right: 22px;
   overflow: hidden;
 }
@@ -850,13 +889,13 @@ button:disabled {
 
 .platform-card-image {
   align-items: center;
+  aspect-ratio: 1;
   background: rgba(31, 31, 31, 0.88);
   border: 1px solid rgba(172, 255, 110, 0.16);
   border-radius: 20px;
   display: flex;
-  height: 224px;
   justify-content: center;
-  max-width: 264px;
+  max-width: 224px;
   overflow: hidden;
   padding: 32px;
   width: 100%;
@@ -2285,6 +2324,16 @@ small {
 
   .hero-platform-frame {
     max-width: 520px;
+  }
+
+  .hero-platform-panel {
+    align-self: center;
+    display: grid;
+    gap: 20px;
+  }
+
+  .hero-platform-panel .hero-actions {
+    position: static;
   }
 
   .how-to-play-section {
