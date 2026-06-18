@@ -471,7 +471,7 @@ button:disabled {
 }
 
 .platform-image-track {
-  animation: platform-strip-scroll 28s linear infinite;
+  animation: platform-strip-scroll 90s linear infinite;
   display: flex;
   width: max-content;
 }
@@ -2651,7 +2651,7 @@ small {
   }
 
   .platform-image-track {
-    animation-duration: 300s;
+    animation-duration: 520s;
     will-change: transform;
   }
 
