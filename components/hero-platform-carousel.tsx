@@ -56,9 +56,9 @@ export function HeroPlatformCarousel({ isSignedIn, platforms }: Props) {
         )}
       </div>
       <div className="hero-actions">
-        <Link className="button hero-button-secondary" href={isSignedIn ? "/chat" : "/auth"}>
+        <a className="button hero-button-secondary" href="#host-chat-options">
           Talk To Host
-        </Link>
+        </a>
         <Link className="button hero-button-primary" href="/auth">
           Sign Up Now
         </Link>

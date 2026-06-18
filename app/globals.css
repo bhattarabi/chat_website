@@ -427,6 +427,60 @@ button:disabled {
   background: #d83c12;
 }
 
+.host-chat-modal-backdrop {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.64);
+  display: none;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 70;
+}
+
+.host-chat-modal-backdrop:target {
+  display: flex;
+}
+
+.host-chat-modal-close-layer {
+  inset: 0;
+  position: absolute;
+}
+
+.host-chat-modal {
+  background: #111a0d;
+  border: 1px solid rgba(217, 255, 24, 0.34);
+  border-radius: 8px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    0 0 28px rgba(217, 255, 24, 0.16);
+  color: white;
+  display: grid;
+  gap: 22px;
+  max-width: 380px;
+  padding: 26px;
+  position: relative;
+  width: min(100%, 380px);
+  z-index: 1;
+}
+
+.host-chat-modal h2 {
+  color: #d9ff18;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  margin: 0;
+  text-align: center;
+}
+
+.host-chat-modal-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.host-chat-modal-actions .button {
+  justify-self: stretch;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

@@ -23,7 +23,7 @@ export default async function AuthPage({ searchParams }: Props) {
           <input id="auth-tab-signup" name="auth-tabs" type="radio" />
           <div className="auth-tab-list" role="tablist" aria-label="Customer access">
             <label htmlFor="auth-tab-signin" role="tab">
-              Sign-in
+              Login
             </label>
             <label htmlFor="auth-tab-signup" role="tab">
               Sign-up
@@ -55,7 +55,7 @@ export default async function AuthPage({ searchParams }: Props) {
                 </div>
               </details>
               <button type="submit" className="auth-submit">
-                Sign-in
+                Login
               </button>
             </form>
             <form action={signUp} className="auth-tab-panel auth-signup-panel">

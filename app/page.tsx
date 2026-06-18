@@ -57,6 +57,26 @@ export default async function Home() {
         </div>
         <HeroPlatformCarousel isSignedIn={Boolean(user)} platforms={featuredGames} />
       </section>
+      <section
+        id="host-chat-options"
+        className="host-chat-modal-backdrop"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="host-chat-modal-title"
+      >
+        <a className="host-chat-modal-close-layer" href="#top" aria-label="Close host chat options" />
+        <div className="host-chat-modal">
+          <h2 id="host-chat-modal-title">Talk To Host</h2>
+          <div className="host-chat-modal-actions">
+            <Link className="button hero-button-primary" href="/auth">
+              Login
+            </Link>
+            <a className="button hero-button-secondary" href="/?chat=open">
+              Chat as Guest
+            </a>
+          </div>
+        </div>
+      </section>
       {platformImages.length > 0 ? (
         <section className="platform-image-strip" aria-label="Platform games">
           <div className="platform-image-track">
