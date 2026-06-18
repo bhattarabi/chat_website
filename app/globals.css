@@ -1246,15 +1246,151 @@ button:disabled {
 }
 
 .auth-shell {
+  background:
+    linear-gradient(rgba(2, 10, 3, 0.42), rgba(2, 10, 3, 0.52)),
+    url("/hero-bg-2.png") center / cover,
+    linear-gradient(180deg, #061306 0%, #020a03 100%);
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 24px;
+  padding: 20px;
 }
 
 .auth-panel {
   max-width: 920px;
   width: 100%;
+}
+
+.auth-popup {
+  background: rgba(245, 250, 242, 0.86);
+  border: 1px solid rgba(172, 255, 110, 0.48);
+  border-radius: 8px;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #071306;
+  max-height: min(680px, calc(100vh - 32px));
+  max-width: 660px;
+  overflow: auto;
+  padding: 16px 18px 22px;
+}
+
+.auth-popup-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.auth-panel.auth-popup .auth-popup-header h1 {
+  color: #071306;
+  font-size: 1.28rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.auth-close {
+  border: 1px solid rgba(0, 27, 63, 0.18);
+  border-radius: 8px;
+  color: var(--accent-strong);
+  font-weight: 700;
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+.auth-close:hover {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.auth-tabs > input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-tab-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.auth-tab-list label,
+.auth-tab-list a {
+  align-items: center;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  color: #006dff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1rem;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+#auth-tab-signin:checked ~ .auth-tab-list label[for="auth-tab-signin"],
+#auth-tab-signup:checked ~ .auth-tab-list label[for="auth-tab-signup"] {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(0, 27, 63, 0.28);
+  color: #071306;
+}
+
+.auth-tab-panels {
+  border: 1px solid rgba(0, 27, 63, 0.25);
+  min-height: 260px;
+  padding: 36px clamp(18px, 8vw, 52px) 20px;
+}
+
+.auth-tab-panel {
+  display: none;
+  gap: 18px;
+}
+
+#auth-tab-signin:checked ~ .auth-tab-panels .auth-signin-panel,
+#auth-tab-signup:checked ~ .auth-tab-panels .auth-signup-panel {
+  display: grid;
+}
+
+.auth-tab-panel label {
+  color: transparent;
+  font-size: 0;
+  gap: 0;
+}
+
+.auth-tab-panel input {
+  border-color: rgba(0, 27, 63, 0.36);
+  border-radius: 7px;
+  color: #071306;
+  font-size: 1rem;
+  min-height: 40px;
+}
+
+.forgot-password-panel {
+  color: #006dff;
+}
+
+.forgot-password-panel summary {
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.95rem;
+}
+
+.forgot-password-copy {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.auth-submit {
+  background: #1873f7;
+  border-radius: 6px;
+  justify-self: center;
+  min-width: 190px;
+}
+
+.auth-submit:hover {
+  background: #005ed8;
 }
 
 .auth-panel.narrow {
@@ -2394,6 +2530,21 @@ small {
     grid-template-columns: 1fr;
   }
 
+  .auth-shell {
+    align-items: start;
+    padding: 14px;
+  }
+
+  .auth-popup {
+    max-height: calc(100dvh - 28px);
+    padding: 12px;
+  }
+
+  .auth-tab-panels {
+    min-height: 0;
+    padding: 24px 14px 18px;
+  }
+
   .dashboard-grid,
   .admin-grid {
     gap: 12px;
@@ -2698,6 +2849,35 @@ small {
   .platform-image-track {
     animation-duration: 720s;
     will-change: transform;
+  }
+
+  .auth-popup-header {
+    gap: 10px;
+  }
+
+  .auth-panel.auth-popup .auth-popup-header h1 {
+    font-size: 1.08rem;
+  }
+
+  .auth-close {
+    min-height: 34px;
+    padding: 6px 10px;
+  }
+
+  .auth-tab-list label,
+  .auth-tab-list a {
+    font-size: 0.92rem;
+    min-height: 42px;
+    padding: 0 6px;
+  }
+
+  .auth-tab-panel {
+    gap: 14px;
+  }
+
+  .auth-submit {
+    justify-self: stretch;
+    min-width: 0;
   }
 
   .app-header {
