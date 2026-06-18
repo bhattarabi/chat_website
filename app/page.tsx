@@ -1,16 +1,10 @@
-import { subscribeToPromos } from "@/app/actions";
 import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { LandingNav } from "@/components/landing-nav";
 import { createClient } from "@/lib/supabase-server";
 import type { PlatformLink, Profile } from "@/lib/types";
 import Link from "next/link";
 
-type HomeProps = {
-  searchParams?: Promise<{ subscribe?: string }>;
-};
-
-export default async function Home({ searchParams }: HomeProps) {
-  const resolvedSearchParams = await searchParams;
+export default async function Home() {
   const supabase = await createClient();
   const {
     data: { user }
@@ -40,14 +34,6 @@ export default async function Home({ searchParams }: HomeProps) {
   const marqueeRepeatCount = platformImages.length < 3 ? 12 : platformImages.length < 6 ? 8 : 5;
   const marqueeCycle = Array.from({ length: marqueeRepeatCount }, () => platformImages).flat();
   const marqueePlatforms = [...marqueeCycle, ...marqueeCycle];
-  const subscribeMessage =
-    resolvedSearchParams?.subscribe === "success"
-      ? "You're subscribed for weekly promos."
-      : resolvedSearchParams?.subscribe === "invalid"
-        ? "Enter a valid email address."
-        : resolvedSearchParams?.subscribe === "error"
-          ? "Subscription failed. Please try again."
-          : "";
 
   return (
     <main className="home" id="top">
@@ -125,21 +111,9 @@ export default async function Home({ searchParams }: HomeProps) {
               </div>
             </div>
             <div className="landing-footer-brand">
-              <img src="/site-logo.svg" alt="Raven Jackpots" />
               <strong>Raven Jackpots</strong>
             </div>
           </div>
-          <form action={subscribeToPromos} className="footer-subscribe" id="subscribe">
-            <input aria-label="Email address" name="email" type="email" placeholder="Enter your email address" required />
-            <input aria-label="Phone number" name="phone" type="tel" placeholder="Enter Your Phone Number" />
-            <button type="submit">Subscribe Now</button>
-            {subscribeMessage ? (
-              <p className={resolvedSearchParams?.subscribe === "success" ? "footer-form-message" : "footer-form-message error"}>
-                {subscribeMessage}
-              </p>
-            ) : null}
-            <p>Join thousands of Gamers & Winners who receive our weekly Promo.</p>
-          </form>
         </div>
         <div className="landing-footer-bottom">
           <span>Copyright Raven Jackpots | Designed for Raven Jackpots | Powered by Raven Jackpots</span>
