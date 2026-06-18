@@ -229,7 +229,7 @@ button:disabled {
   color: white;
   display: grid;
   gap: 28px;
-  grid-template-columns: minmax(180px, 0.85fr) minmax(250px, 1fr) minmax(280px, 1.1fr);
+  grid-template-columns: minmax(250px, 1fr) minmax(280px, 1.1fr);
   margin: 0 auto;
   max-width: 1180px;
   min-height: 540px;
@@ -252,21 +252,6 @@ button:disabled {
 .home-hero > * {
   position: relative;
   z-index: 1;
-}
-
-.hero-logo-column {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-}
-
-.hero-logo-column img {
-  display: block;
-  filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.26));
-  height: 319px;
-  max-width: none;
-  transform: scaleX(0.72);
-  width: auto;
 }
 
 .hero-copy-column {
@@ -2281,10 +2266,6 @@ small {
     padding-top: 34px;
   }
 
-  .hero-logo-column img {
-    max-height: 220px;
-  }
-
   .hero-platform-frame {
     max-width: 520px;
   }
@@ -2521,10 +2502,6 @@ small {
     gap: 22px;
     padding-left: 20px;
     padding-right: 20px;
-  }
-
-  .hero-logo-column img {
-    max-height: 180px;
   }
 
   .hero-copy-column {

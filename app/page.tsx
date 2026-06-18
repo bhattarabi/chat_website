@@ -46,14 +46,10 @@ export default async function Home({ searchParams }: HomeProps) {
     <main className="home" id="top">
       <LandingNav active="home" isAdmin={profile?.role === "admin"} isSignedIn={Boolean(user)} />
       <section className="home-hero" aria-labelledby="home-hero-heading">
-        <div className="hero-logo-column">
-          <img src="/site-logo.svg" alt="Game Links Galore" />
-        </div>
         <div className="hero-copy-column">
-          <h1 id="home-hero-heading">Game Links Galore</h1>
+          <h1 id="home-hero-heading">WELCOME TO RAVEN JACKPOTS</h1>
           <p>
-            Welcome bonus
-            <strong> up to $100</strong>
+            Welcome Bonus
           </p>
           <p>Live Agent 24/7</p>
           <p className="hero-highlight">Fast Cash Out!</p>
