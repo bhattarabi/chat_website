@@ -263,23 +263,40 @@ button:disabled {
 
 .hero-copy-column h1 {
   color: white;
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-family: "Arial Black", Impact, system-ui, sans-serif;
+  font-size: clamp(2.3rem, 5vw, 4.35rem);
   font-weight: 900;
-  line-height: 0.92;
+  line-height: 0.9;
   margin: 0;
-  text-shadow: 0 5px 0 #020a03, 0 12px 28px rgba(0, 0, 0, 0.34);
+  text-shadow:
+    -3px -3px 0 #082817,
+    3px -3px 0 #082817,
+    -3px 3px 0 #082817,
+    3px 3px 0 #082817,
+    0 7px 0 rgba(0, 0, 0, 0.52),
+    0 16px 30px rgba(0, 0, 0, 0.42);
+  text-transform: uppercase;
 }
 
 .hero-copy-column p {
-  font-size: clamp(1.1rem, 1.8vw, 1.55rem);
-  font-weight: 800;
-  line-height: 1.15;
+  color: white;
+  display: grid;
+  font-size: clamp(1.35rem, 2.25vw, 2rem);
+  font-weight: 900;
+  line-height: 1.22;
   margin: 0;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.7),
+    0 8px 22px rgba(0, 0, 0, 0.35);
 }
 
-.hero-copy-column strong,
+.hero-gold,
 .hero-highlight {
-  color: #ffd24a;
+  color: #f4c45f;
+}
+
+.hero-highlight {
+  font-size: clamp(1.85rem, 3vw, 2.7rem);
 }
 
 .hero-platform-panel {
