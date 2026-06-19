@@ -213,16 +213,16 @@ export function FloatingChatWidget({
 
   return (
     <>
-      <button
+      <Link
         className="floating-chat-button"
-        type="button"
-        onClick={() => toggleChat(true)}
+        href={openedPath}
+        onClick={() => setIsOpen(true)}
         aria-label="Open support chat"
         data-open={isOpen}
       >
         <MessageCircle aria-hidden="true" size={24} strokeWidth={2.5} />
         <span>Chat</span>
-      </button>
+      </Link>
 
       <aside className="floating-chat-panel" aria-label="Support chat" data-open={isOpen}>
         {chatStatus === "loading" ? (
@@ -249,28 +249,28 @@ export function FloatingChatWidget({
                 <Link className="chat-icon-button" href={fullPageHref} aria-label="Open full page chat">
                   <Maximize2 aria-hidden="true" size={18} />
                 </Link>
-                <button
+                <Link
                   className="chat-icon-button"
-                  type="button"
-                  onClick={() => toggleChat(false)}
+                  href={closedPath}
+                  onClick={() => setIsOpen(false)}
                   aria-label="Minimize chat"
                 >
                   <Minus aria-hidden="true" size={22} strokeWidth={2.75} />
-                </button>
+                </Link>
               </>
             }
           />
         ) : (
           <GuestChatRoom
             actions={
-              <button
+              <Link
                 className="chat-icon-button"
-                type="button"
-                onClick={() => toggleChat(false)}
+                href={closedPath}
+                onClick={() => setIsOpen(false)}
                 aria-label="Minimize chat"
               >
                 <Minus aria-hidden="true" size={22} strokeWidth={2.75} />
-              </button>
+              </Link>
             }
           />
         )}
