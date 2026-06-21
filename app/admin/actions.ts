@@ -233,6 +233,23 @@ export async function deletePlatformLink(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function saveSocialLinks(formData: FormData) {
+  const supabase = await requireAdmin();
+  const telegramUrl = text(formData, "telegram_url");
+  const facebookUrl = text(formData, "facebook_url");
+  const { error } = await supabase.from("social_links").upsert({
+    id: "main",
+    telegram_url: telegramUrl ? normalizePlatformUrl(telegramUrl) : null,
+    facebook_url: facebookUrl ? normalizePlatformUrl(facebookUrl) : null
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin");
+  revalidatePath("/platforms");
+  revalidatePath("/");
+}
+
 function ruleCategory(value: string): GameRoomRuleCategory {
   return value === "payment" ? "payment" : "redemption";
 }

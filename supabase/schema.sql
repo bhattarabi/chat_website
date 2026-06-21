@@ -116,6 +116,14 @@ create table public.promotional_email_deliveries (
   created_at timestamptz not null default now()
 );
 
+create table public.social_links (
+  id text primary key default 'main',
+  telegram_url text,
+  facebook_url text,
+  updated_at timestamptz not null default now(),
+  constraint social_links_singleton check (id = 'main')
+);
+
 create table public.game_room_rules (
   id uuid primary key default gen_random_uuid(),
   category text not null,
@@ -171,6 +179,10 @@ for each row execute function public.touch_updated_at();
 
 create trigger promotional_emails_touch_updated_at
 before update on public.promotional_emails
+for each row execute function public.touch_updated_at();
+
+create trigger social_links_touch_updated_at
+before update on public.social_links
 for each row execute function public.touch_updated_at();
 
 create trigger game_room_rules_touch_updated_at
@@ -507,6 +519,7 @@ alter table public.announcements enable row level security;
 alter table public.promo_subscribers enable row level security;
 alter table public.promotional_emails enable row level security;
 alter table public.promotional_email_deliveries enable row level security;
+alter table public.social_links enable row level security;
 alter table public.game_room_rules enable row level security;
 
 create policy "Profiles are visible to self and admins"
@@ -614,6 +627,17 @@ to authenticated
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
 
+create policy "Social links are visible"
+on public.social_links for select
+to anon, authenticated
+using (true);
+
+create policy "Admins manage social links"
+on public.social_links for all
+to authenticated
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
 create policy "Game room rules are visible"
 on public.game_room_rules for select
 to anon, authenticated
@@ -630,6 +654,9 @@ grant execute on function public.guest_chat_messages(uuid, text) to anon, authen
 grant execute on function public.send_guest_message(uuid, text, text) to anon, authenticated;
 grant execute on function public.current_customer_chat() to authenticated;
 grant execute on function public.ensure_customer_chat() to authenticated;
+
+insert into public.social_links (id)
+values ('main');
 
 insert into public.game_room_rules (category, body, sort_order)
 values

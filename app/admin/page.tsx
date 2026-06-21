@@ -9,14 +9,16 @@ import type {
   Conversation,
   GameRoomRule,
   PlatformLink,
-  Profile
+  Profile,
+  SocialLinks
 } from "@/lib/types";
 import {
   addGameRoomRule,
   deleteGameRoomRule,
   moveGameRoomRule,
   saveGameRoomRule,
-  savePlatformLink
+  savePlatformLink,
+  saveSocialLinks
 } from "./actions";
 
 export default async function AdminPage() {
@@ -39,6 +41,7 @@ export default async function AdminPage() {
     { data: links },
     { data: users },
     { data: conversations },
+    { data: socialLinks },
     { data: gameRules }
   ] = await Promise.all([
       supabase
@@ -52,6 +55,11 @@ export default async function AdminPage() {
         .select("*, profiles:customer_id(email, full_name, phone)")
         .order("last_message_at", { ascending: false })
         .returns<Conversation[]>(),
+      supabase
+        .from("social_links")
+        .select("id, telegram_url, facebook_url")
+        .eq("id", "main")
+        .maybeSingle<SocialLinks>(),
       supabase
         .from("game_room_rules")
         .select("id, category, body, sort_order, created_at")
@@ -67,6 +75,7 @@ export default async function AdminPage() {
 
       <section className="admin-tabs">
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
+        <input id="admin-tab-social" name="admin-tabs" type="radio" />
         <input id="admin-tab-rules" name="admin-tabs" type="radio" />
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
         <input id="admin-tab-chats" name="admin-tabs" type="radio" />
@@ -74,6 +83,9 @@ export default async function AdminPage() {
         <div className="admin-tab-list admin-desktop-tab-list" role="tablist" aria-label="Admin sections">
           <label htmlFor="admin-tab-links" role="tab">
             Platform Links
+          </label>
+          <label htmlFor="admin-tab-social" role="tab">
+            Social Links
           </label>
           <label htmlFor="admin-tab-rules" role="tab">
             Gameroom Rules
@@ -92,6 +104,9 @@ export default async function AdminPage() {
           <div className="admin-tab-list" role="tablist" aria-label="Admin sections">
             <label htmlFor="admin-tab-links" role="tab">
               Platform Links
+            </label>
+            <label htmlFor="admin-tab-social" role="tab">
+              Social Links
             </label>
             <label htmlFor="admin-tab-rules" role="tab">
               Gameroom Rules
@@ -128,6 +143,33 @@ export default async function AdminPage() {
               <button type="submit">Add link</button>
             </form>
             <PlatformLinksAdminTable links={links ?? []} />
+          </section>
+
+          <section className="admin-section admin-tab-panel social-panel">
+            <h1>Social links</h1>
+            <form action={saveSocialLinks} className="panel-form">
+              <label>
+                Telegram URL
+                <input
+                  name="telegram_url"
+                  defaultValue={socialLinks?.telegram_url ?? ""}
+                  pattern="https?://.+|www\..+"
+                  placeholder="https://t.me/..."
+                  title="Enter a URL starting with http://, https://, or www."
+                />
+              </label>
+              <label>
+                Facebook URL
+                <input
+                  name="facebook_url"
+                  defaultValue={socialLinks?.facebook_url ?? ""}
+                  pattern="https?://.+|www\..+"
+                  placeholder="https://facebook.com/..."
+                  title="Enter a URL starting with http://, https://, or www."
+                />
+              </label>
+              <button type="submit">Save social links</button>
+            </form>
           </section>
 
           <section className="admin-section admin-tab-panel rules-panel">

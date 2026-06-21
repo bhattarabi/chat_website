@@ -17,6 +17,12 @@ export type PlatformLink = {
   active: boolean;
 };
 
+export type SocialLinks = {
+  id: string;
+  telegram_url: string | null;
+  facebook_url: string | null;
+};
+
 export type Announcement = {
   id: string;
   title: string;

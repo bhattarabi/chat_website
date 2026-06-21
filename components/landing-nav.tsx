@@ -4,11 +4,19 @@ import { signOut } from "@/app/auth/actions";
 
 type Props = {
   active: "home" | "platforms";
+  facebookUrl?: string | null;
   isAdmin?: boolean;
   isSignedIn: boolean;
+  telegramUrl?: string | null;
 };
 
-export function LandingNav({ active, isAdmin = false, isSignedIn }: Props) {
+export function LandingNav({
+  active,
+  facebookUrl,
+  isAdmin = false,
+  isSignedIn,
+  telegramUrl
+}: Props) {
   return (
     <nav className="topbar">
       <Link className="brand home-brand" href="/" aria-label="Raven home">
@@ -51,12 +59,30 @@ export function LandingNav({ active, isAdmin = false, isSignedIn }: Props) {
               <Link className="button" href="/auth">
                 Login
               </Link>
-              <a className="social-icon-link" href="#" aria-label="Telegram" title="Telegram">
-                <TelegramIcon />
-              </a>
-              <a className="social-icon-link" href="#" aria-label="Facebook" title="Facebook">
-                <FacebookIcon />
-              </a>
+              {telegramUrl ? (
+                <a
+                  className="social-icon-link"
+                  href={telegramUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Telegram"
+                  title="Telegram"
+                >
+                  <TelegramIcon />
+                </a>
+              ) : null}
+              {facebookUrl ? (
+                <a
+                  className="social-icon-link"
+                  href={facebookUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook"
+                  title="Facebook"
+                >
+                  <FacebookIcon />
+                </a>
+              ) : null}
             </>
           )}
         </div>

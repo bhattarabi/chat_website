@@ -2,7 +2,7 @@ import { HeroPlatformCarousel } from "@/components/hero-platform-carousel";
 import { LandingNav } from "@/components/landing-nav";
 import { rulesByCategory } from "@/lib/game-room-rules";
 import { createClient } from "@/lib/supabase-server";
-import type { GameRoomRule, PlatformLink, Profile } from "@/lib/types";
+import type { GameRoomRule, PlatformLink, Profile, SocialLinks } from "@/lib/types";
 import Link from "next/link";
 
 export default async function Home() {
@@ -25,6 +25,11 @@ export default async function Home() {
     .order("category", { ascending: true })
     .order("sort_order", { ascending: true })
     .returns<GameRoomRule[]>();
+  const { data: socialLinks } = await supabase
+    .from("social_links")
+    .select("id, telegram_url, facebook_url")
+    .eq("id", "main")
+    .maybeSingle<SocialLinks>();
   const platformImages = (games ?? []).filter((game) => game.image_url);
   const featuredGames = [
     {
@@ -45,7 +50,13 @@ export default async function Home() {
 
   return (
     <main className="home" id="top">
-      <LandingNav active="home" isAdmin={profile?.role === "admin"} isSignedIn={Boolean(user)} />
+      <LandingNav
+        active="home"
+        facebookUrl={socialLinks?.facebook_url}
+        isAdmin={profile?.role === "admin"}
+        isSignedIn={Boolean(user)}
+        telegramUrl={socialLinks?.telegram_url}
+      />
       <section className="home-hero" aria-labelledby="home-hero-heading">
         <div className="hero-copy-column">
           <h1 id="home-hero-heading">WELCOME TO RAVEN JACKPOTS</h1>

@@ -1,6 +1,6 @@
 import { LandingNav } from "@/components/landing-nav";
 import { createClient } from "@/lib/supabase-server";
-import type { PlatformLink, Profile } from "@/lib/types";
+import type { PlatformLink, Profile, SocialLinks } from "@/lib/types";
 
 export default async function PlatformsPage() {
   const supabase = await createClient();
@@ -16,10 +16,21 @@ export default async function PlatformsPage() {
     .eq("active", true)
     .order("title", { ascending: true })
     .returns<PlatformLink[]>();
+  const { data: socialLinks } = await supabase
+    .from("social_links")
+    .select("id, telegram_url, facebook_url")
+    .eq("id", "main")
+    .maybeSingle<SocialLinks>();
 
   return (
     <main className="home platforms-page">
-      <LandingNav active="platforms" isAdmin={profile?.role === "admin"} isSignedIn={Boolean(user)} />
+      <LandingNav
+        active="platforms"
+        facebookUrl={socialLinks?.facebook_url}
+        isAdmin={profile?.role === "admin"}
+        isSignedIn={Boolean(user)}
+        telegramUrl={socialLinks?.telegram_url}
+      />
       <section className="platforms-section" aria-labelledby="platforms-heading">
         <h1 id="platforms-heading">Platforms Available</h1>
         <div className="platforms-grid">
