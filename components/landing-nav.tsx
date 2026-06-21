@@ -59,30 +59,26 @@ export function LandingNav({
               <Link className="button" href="/auth">
                 Login
               </Link>
-              {telegramUrl ? (
-                <a
-                  className="social-icon-link"
-                  href={telegramUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Telegram"
-                  title="Telegram"
-                >
-                  <TelegramIcon />
-                </a>
-              ) : null}
-              {facebookUrl ? (
-                <a
-                  className="social-icon-link"
-                  href={facebookUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Facebook"
-                  title="Facebook"
-                >
-                  <FacebookIcon />
-                </a>
-              ) : null}
+              <a
+                className="social-icon-link"
+                href={telegramUrl || "#"}
+                target={telegramUrl ? "_blank" : undefined}
+                rel={telegramUrl ? "noreferrer" : undefined}
+                aria-label="Telegram"
+                title="Telegram"
+              >
+                <TelegramIcon />
+              </a>
+              <a
+                className="social-icon-link"
+                href={facebookUrl || "#"}
+                target={facebookUrl ? "_blank" : undefined}
+                rel={facebookUrl ? "noreferrer" : undefined}
+                aria-label="Facebook"
+                title="Facebook"
+              >
+                <FacebookIcon />
+              </a>
             </>
           )}
         </div>
