@@ -57,7 +57,8 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
     image_url: "",
     active: ""
   });
-  const [editing, setEditing] = useState<PlatformLink | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = links.find((item) => item.id === editingId) ?? null;
 
   const visibleLinks = useMemo(() => {
     return [...links]
@@ -142,7 +143,7 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                       type="button"
                       className="icon-only secondary"
                       title="Edit link"
-                      onClick={() => setEditing(item)}
+                      onClick={() => setEditingId(item.id)}
                     >
                       <Pencil size={16} />
                     </button>
@@ -161,8 +162,12 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
       </div>
 
       {editing ? (
-        <Modal title="Edit Platform Link" onClose={() => setEditing(null)}>
-          <form action={savePlatformLink} className="modal-form">
+        <Modal title="Edit Platform Link" onClose={() => setEditingId(null)}>
+          <form
+            action={savePlatformLink}
+            className="modal-form"
+            key={`${editing.id}:${editing.title}:${editing.url}:${editing.image_url}:${editing.active}`}
+          >
             <input type="hidden" name="id" value={editing.id} />
             <input type="hidden" name="existing_image_url" value={editing.image_url ?? ""} />
             <label>
@@ -208,7 +213,8 @@ export function UsersAdminTable({ users }: { users: Profile[] }) {
     role: "",
     disabled: ""
   });
-  const [editing, setEditing] = useState<Profile | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = users.find((item) => item.id === editingId) ?? null;
 
   const visibleUsers = useMemo(() => {
     return [...users]
@@ -291,7 +297,7 @@ export function UsersAdminTable({ users }: { users: Profile[] }) {
                     type="button"
                     className="icon-only secondary"
                     title="Edit user"
-                    onClick={() => setEditing(item)}
+                    onClick={() => setEditingId(item.id)}
                   >
                     <Pencil size={16} />
                   </button>
@@ -303,8 +309,12 @@ export function UsersAdminTable({ users }: { users: Profile[] }) {
       </div>
 
       {editing ? (
-        <Modal title="Edit User" onClose={() => setEditing(null)}>
-          <form action={updateUserStatus} className="modal-form">
+        <Modal title="Edit User" onClose={() => setEditingId(null)}>
+          <form
+            action={updateUserStatus}
+            className="modal-form"
+            key={`${editing.id}:${editing.role}:${editing.disabled}`}
+          >
             <input type="hidden" name="user_id" value={editing.id} />
             <div className="account-email">
               <span>Email</span>
