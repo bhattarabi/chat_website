@@ -45,12 +45,6 @@ export type PromotionalEmail = {
   created_at: string;
 };
 
-export type MainFeature = {
-  id: string;
-  imageUrl: string | null;
-  linkUrl: string | null;
-};
-
 export type GameRoomRuleCategory = "redemption" | "payment";
 
 export type GameRoomRule = {

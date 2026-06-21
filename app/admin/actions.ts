@@ -35,10 +35,6 @@ function normalizePlatformUrl(url: string) {
   return url;
 }
 
-function normalizeImageUrl(url: string) {
-  return normalizePlatformUrl(url);
-}
-
 function platformImageExtension(file: File) {
   const extension = file.name.split(".").pop()?.toLowerCase();
   if (extension && /^[a-z0-9]+$/.test(extension)) return extension;
@@ -64,7 +60,7 @@ async function uploadPlatformImage(
   const file = formData.get("image_file");
   if (!(file instanceof File) || file.size === 0) {
     const imageUrl = text(formData, "image_url") || text(formData, "existing_image_url");
-    return imageUrl ? normalizeImageUrl(imageUrl) : null;
+    return imageUrl ? normalizePlatformUrl(imageUrl) : null;
   }
 
   if (!file.type.startsWith("image/")) {
@@ -234,21 +230,6 @@ export async function deletePlatformLink(formData: FormData) {
   await supabase.from("platform_links").delete().eq("id", text(formData, "id"));
   revalidatePath("/admin");
   revalidatePath("/dashboard");
-  revalidatePath("/");
-}
-
-export async function saveMainFeature(formData: FormData) {
-  const supabase = await requireAdmin();
-  const imageUrl = text(formData, "main_feature_image_url");
-  const linkUrl = text(formData, "main_feature_link_url");
-
-  await supabase.from("main_feature").upsert({
-    id: "main",
-    image_url: imageUrl ? normalizeImageUrl(imageUrl) : null,
-    link_url: linkUrl ? normalizePlatformUrl(linkUrl) : null
-  });
-
-  revalidatePath("/admin");
   revalidatePath("/");
 }
 

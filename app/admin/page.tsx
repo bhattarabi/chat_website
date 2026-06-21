@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase-server";
 import type {
   Conversation,
   GameRoomRule,
-  MainFeature,
   PlatformLink,
   Profile
 } from "@/lib/types";
@@ -16,7 +15,6 @@ import {
   addGameRoomRule,
   deleteGameRoomRule,
   moveGameRoomRule,
-  saveMainFeature,
   saveGameRoomRule,
   savePlatformLink
 } from "./actions";
@@ -41,7 +39,6 @@ export default async function AdminPage() {
     { data: links },
     { data: users },
     { data: conversations },
-    { data: mainFeature },
     { data: gameRules }
   ] = await Promise.all([
       supabase
@@ -56,18 +53,12 @@ export default async function AdminPage() {
         .order("last_message_at", { ascending: false })
         .returns<Conversation[]>(),
       supabase
-        .from("main_feature")
-        .select("id, imageUrl:image_url, linkUrl:link_url")
-        .eq("id", "main")
-        .maybeSingle<MainFeature>(),
-      supabase
         .from("game_room_rules")
         .select("id, category, body, sort_order, created_at")
         .order("category", { ascending: true })
         .order("sort_order", { ascending: true })
         .returns<GameRoomRule[]>()
     ]);
-  const feature = mainFeature ?? { id: "main", imageUrl: null, linkUrl: null };
   const gameRuleColumns = rulesByCategory(gameRules);
 
   return (
@@ -76,7 +67,6 @@ export default async function AdminPage() {
 
       <section className="admin-tabs">
         <input id="admin-tab-links" name="admin-tabs" type="radio" defaultChecked />
-        <input id="admin-tab-homepage" name="admin-tabs" type="radio" />
         <input id="admin-tab-rules" name="admin-tabs" type="radio" />
         <input id="admin-tab-users" name="admin-tabs" type="radio" />
         <input id="admin-tab-chats" name="admin-tabs" type="radio" />
@@ -84,9 +74,6 @@ export default async function AdminPage() {
         <div className="admin-tab-list admin-desktop-tab-list" role="tablist" aria-label="Admin sections">
           <label htmlFor="admin-tab-links" role="tab">
             Platform Links
-          </label>
-          <label htmlFor="admin-tab-homepage" role="tab">
-            Homepage
           </label>
           <label htmlFor="admin-tab-rules" role="tab">
             Gameroom Rules
@@ -105,9 +92,6 @@ export default async function AdminPage() {
           <div className="admin-tab-list" role="tablist" aria-label="Admin sections">
             <label htmlFor="admin-tab-links" role="tab">
               Platform Links
-            </label>
-            <label htmlFor="admin-tab-homepage" role="tab">
-              Homepage
             </label>
             <label htmlFor="admin-tab-rules" role="tab">
               Gameroom Rules
@@ -144,33 +128,6 @@ export default async function AdminPage() {
               <button type="submit">Add link</button>
             </form>
             <PlatformLinksAdminTable links={links ?? []} />
-          </section>
-
-          <section className="admin-section admin-tab-panel homepage-panel">
-            <h1>Homepage</h1>
-            <form action={saveMainFeature} className="panel-form">
-              <label>
-                MainFeature image URL
-                <input
-                  name="main_feature_image_url"
-                  defaultValue={feature.imageUrl ?? ""}
-                  pattern="https?://.+|www\..+"
-                  placeholder="https://... or www..."
-                  title="Enter an image URL starting with http://, https://, or www."
-                />
-              </label>
-              <label>
-                MainFeature link
-                <input
-                  name="main_feature_link_url"
-                  defaultValue={feature.linkUrl ?? ""}
-                  pattern="https?://.+|www\..+"
-                  placeholder="https://... or www..."
-                  title="Enter a link starting with http://, https://, or www."
-                />
-              </label>
-              <button type="submit">Save homepage</button>
-            </form>
           </section>
 
           <section className="admin-section admin-tab-panel rules-panel">
