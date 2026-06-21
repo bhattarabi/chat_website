@@ -46,8 +46,8 @@ export default async function AdminPage() {
   ] = await Promise.all([
       supabase
         .from("platform_links")
-        .select("id, title, description, url, image_url, isFeatured:is_featured, button_label, active, sort_order")
-        .order("sort_order")
+        .select("id, title, url, image_url, active")
+        .order("title")
         .returns<PlatformLink[]>(),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }).returns<Profile[]>(),
       supabase
@@ -137,16 +137,9 @@ export default async function AdminPage() {
                 Image
                 <input name="image_file" type="file" accept="image/*" />
               </label>
-              <input name="description" placeholder="Description" />
-              <input name="button_label" placeholder="Button" />
-              <input name="sort_order" type="number" placeholder="Order" />
               <label className="check-row">
                 <input name="active" type="checkbox" defaultChecked />
                 Active
-              </label>
-              <label className="check-row">
-                <input name="isFeatured" type="checkbox" />
-                Featured
               </label>
               <button type="submit">Add link</button>
             </form>

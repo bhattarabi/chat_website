@@ -18,13 +18,9 @@ create table public.profiles (
 create table public.platform_links (
   id uuid primary key default gen_random_uuid(),
   title text not null,
-  description text,
   url text not null,
   image_url text,
-  is_featured boolean not null default false,
-  button_label text not null default 'Open',
   active boolean not null default true,
-  sort_order integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -140,7 +136,7 @@ create table public.game_room_rules (
 );
 
 create index profiles_role_idx on public.profiles(role);
-create index platform_links_active_sort_idx on public.platform_links(active, sort_order);
+create index platform_links_active_idx on public.platform_links(active);
 create index conversations_customer_idx on public.conversations(customer_id);
 create unique index conversations_guest_token_hash_idx
 on public.conversations(guest_token_hash);
@@ -677,34 +673,22 @@ values
   ('payment', 'BinPay (Accept major, Debit & Credit Cards)', 5),
   ('payment', 'Pandora (Accept Gpay, Min $20)', 6);
 
-insert into public.platform_links (title, description, url, image_url, is_featured, button_label, sort_order)
+insert into public.platform_links (title, url, image_url)
 values
   (
     'Main Game Portal',
-    'Open the primary customer game platform.',
     'https://example.com/game',
-    'https://images.unsplash.com/photo-1606167668584-78701c57f13d?auto=format&fit=crop&w=800&q=80',
-    true,
-    'Access',
-    1
+    'https://images.unsplash.com/photo-1606167668584-78701c57f13d?auto=format&fit=crop&w=800&q=80'
   ),
   (
     'Downloads',
-    'Install files and setup resources.',
     'https://example.com/downloads',
-    'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
-    true,
-    'Download',
-    2
+    'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80'
   ),
   (
     'Account Help',
-    'Login and password support resources.',
     'https://example.com/help',
-    'https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&w=800&q=80',
-    true,
-    'View',
-    3
+    'https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&w=800&q=80'
   );
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

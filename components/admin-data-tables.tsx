@@ -17,10 +17,6 @@ type PlatformColumn =
   | "title"
   | "url"
   | "image_url"
-  | "isFeatured"
-  | "description"
-  | "button_label"
-  | "sort_order"
   | "active";
 type UserColumn = "full_name" | "email" | "phone" | "role" | "disabled";
 type SubscriberColumn = "email" | "phone" | "subscribed_at" | "unsubscribed_at";
@@ -52,17 +48,13 @@ function compareValues(a: string | number | boolean | null, b: string | number |
 
 export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
   const [sort, setSort] = useState<SortState<PlatformColumn>>({
-    column: "sort_order",
+    column: "title",
     direction: "asc"
   });
   const [filters, setFilters] = useState<Record<PlatformColumn, string>>({
     title: "",
     url: "",
     image_url: "",
-    isFeatured: "",
-    description: "",
-    button_label: "",
-    sort_order: "",
     active: ""
   });
   const [editing, setEditing] = useState<PlatformLink | null>(null);
@@ -74,7 +66,6 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
           const filter = filters[column].toLowerCase();
           if (!filter) return true;
           if (column === "active") return (item.active ? "active" : "inactive") === filter;
-          if (column === "isFeatured") return (item.isFeatured ? "featured" : "not featured") === filter;
           return textValue(item[column]).includes(filter);
         })
       )
@@ -92,9 +83,6 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
             <col className="platform-col-title" />
             <col className="platform-col-url" />
             <col className="platform-col-image" />
-            <col className="platform-col-featured" />
-            <col className="platform-col-button" />
-            <col className="platform-col-order" />
             <col className="platform-col-status" />
             <col className="platform-col-actions" />
           </colgroup>
@@ -103,15 +91,6 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
               <SortableHeader label="Title" onClick={() => setSort(nextDirection(sort, "title"))} />
               <SortableHeader label="URL" onClick={() => setSort(nextDirection(sort, "url"))} />
               <SortableHeader label="Image" onClick={() => setSort(nextDirection(sort, "image_url"))} />
-              <SortableHeader
-                label="Featured"
-                onClick={() => setSort(nextDirection(sort, "isFeatured"))}
-              />
-              <SortableHeader
-                label="Button"
-                onClick={() => setSort(nextDirection(sort, "button_label"))}
-              />
-              <SortableHeader label="Order" onClick={() => setSort(nextDirection(sort, "sort_order"))} />
               <SortableHeader label="Status" onClick={() => setSort(nextDirection(sort, "active"))} />
               <th aria-label="Actions" />
             </tr>
@@ -127,25 +106,6 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
               <FilterCell
                 value={filters.image_url}
                 onChange={(value) => setFilters({ ...filters, image_url: value })}
-              />
-              <th>
-                <select
-                  value={filters.isFeatured}
-                  onChange={(event) => setFilters({ ...filters, isFeatured: event.target.value })}
-                  aria-label="Filter featured"
-                >
-                  <option value="">All</option>
-                  <option value="featured">Featured</option>
-                  <option value="not featured">Not featured</option>
-                </select>
-              </th>
-              <FilterCell
-                value={filters.button_label}
-                onChange={(value) => setFilters({ ...filters, button_label: value })}
-              />
-              <FilterCell
-                value={filters.sort_order}
-                onChange={(value) => setFilters({ ...filters, sort_order: value })}
               />
               <th>
                 <select
@@ -175,9 +135,6 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
                     ""
                   )}
                 </td>
-                <td>{item.isFeatured ? "Featured" : "Not featured"}</td>
-                <td title={item.button_label}>{item.button_label}</td>
-                <td>{item.sort_order}</td>
                 <td>{item.active ? "Active" : "Inactive"}</td>
                 <td>
                   <div className="row-actions">
@@ -226,22 +183,6 @@ export function PlatformLinksAdminTable({ links }: { links: PlatformLink[] }) {
               Image
               <input name="image_file" type="file" accept="image/*" />
               {editing.image_url ? <small>Leave empty to keep the current image.</small> : null}
-            </label>
-            <label className="check-row">
-              <input name="isFeatured" type="checkbox" defaultChecked={editing.isFeatured} />
-              Featured
-            </label>
-            <label>
-              Description
-              <textarea name="description" defaultValue={editing.description ?? ""} rows={4} />
-            </label>
-            <label>
-              Button
-              <input name="button_label" defaultValue={editing.button_label} />
-            </label>
-            <label>
-              Order
-              <input name="sort_order" type="number" defaultValue={editing.sort_order} />
             </label>
             <label className="check-row">
               <input name="active" type="checkbox" defaultChecked={editing.active} />

@@ -2349,35 +2349,23 @@ textarea {
 }
 
 .platform-links-table .platform-col-title {
-  width: 18%;
-}
-
-.platform-links-table .platform-col-url {
-  width: 18%;
-}
-
-.platform-links-table .platform-col-image {
   width: 24%;
 }
 
-.platform-links-table .platform-col-featured {
-  width: 9%;
+.platform-links-table .platform-col-url {
+  width: 24%;
 }
 
-.platform-links-table .platform-col-button {
-  width: 10%;
-}
-
-.platform-links-table .platform-col-order {
-  width: 6%;
+.platform-links-table .platform-col-image {
+  width: 30%;
 }
 
 .platform-links-table .platform-col-status {
-  width: 5%;
+  width: 10%;
 }
 
 .platform-links-table .platform-col-actions {
-  width: 10%;
+  width: 12%;
 }
 
 .platform-links-table th,

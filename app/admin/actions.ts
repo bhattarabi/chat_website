@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import type { GameRoomRuleCategory, Role } from "@/lib/types";
 
+const MAX_PLATFORM_IMAGE_SIZE = 10 * 1024 * 1024;
+
 async function requireAdmin() {
   const supabase = await createClient();
   const {
@@ -67,6 +69,10 @@ async function uploadPlatformImage(
 
   if (!file.type.startsWith("image/")) {
     throw new Error("Platform images must be image files.");
+  }
+
+  if (file.size > MAX_PLATFORM_IMAGE_SIZE) {
+    throw new Error("Platform images must be 10 MB or smaller.");
   }
 
   const path = `${crypto.randomUUID()}.${platformImageExtension(file)}`;
@@ -207,12 +213,8 @@ export async function savePlatformLink(formData: FormData) {
   const imageUrl = await uploadPlatformImage(supabase, formData);
   const payload = {
     title: text(formData, "title"),
-    description: text(formData, "description") || null,
     url: normalizePlatformUrl(text(formData, "url")),
     image_url: imageUrl,
-    is_featured: formData.get("isFeatured") === "on",
-    button_label: text(formData, "button_label") || "Open",
-    sort_order: Number(text(formData, "sort_order") || 0),
     active: formData.get("active") === "on"
   };
 

@@ -15,9 +15,9 @@ export default async function Home() {
     : { data: null };
   const { data: games } = await supabase
     .from("platform_links")
-    .select("id, title, description, url, image_url, isFeatured:is_featured, button_label, active, sort_order")
+    .select("id, title, url, image_url, active")
     .eq("active", true)
-    .order("sort_order", { ascending: true })
+    .order("title", { ascending: true })
     .returns<PlatformLink[]>();
   const { data: gameRules } = await supabase
     .from("game_room_rules")
